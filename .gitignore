@@ -1,0 +1,26 @@
+# Fichiers telecharges (trop gros pour git)
+downloads/*.mp3
+downloads/*.mp4
+downloads/*.mkv
+downloads/*.webm
+downloads/*.flac
+downloads/*.wav
+downloads/*.aac
+downloads/*.ogg
+downloads/*.jpg
+downloads/*.log
+downloads/*.done
+downloads/*.part
+
+# Donnees locales (specifiques a chaque PC)
+data/library.json
+data/profiles.json
+data/history.json
+
+# Installateurs (trop gros pour git ~316 Mo)
+program/xamp.exe
+program/python.msix
+program/ffmpeg.zip
+
+# Settings locaux
+.claude/

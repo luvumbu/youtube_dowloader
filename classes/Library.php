@@ -101,7 +101,8 @@ class Library
             'channel'   => $params['channel'] ?? '',
             'duration'  => $params['duration'] ?? '',
             'date'      => date('Y-m-d H:i:s'),
-            'cover'     => $params['cover'] ?? ''
+            'cover'     => $params['cover'] ?? '',
+            'url'       => $params['url'] ?? ''
         ];
 
         $this->data['items'][] = $item;

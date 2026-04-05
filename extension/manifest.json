@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Downloader",
+  "description": "Telecharger des videos YouTube en un clic vers l'app locale",
+  "version": "1.0",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["http://localhost/*"],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon48.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*", "*://youtube.com/*", "*://m.youtube.com/*", "*://www.youtube.com/playlist*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}

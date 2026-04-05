@@ -1,428 +1,120 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Downloader - Guide d'installation</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Downloader - Guide</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f0f; color: #e1e1e1; line-height: 1.7; }
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #0f0f0f;
-            color: #e1e1e1;
-            line-height: 1.7;
-        }
+.sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #1a1a1a; border-right: 1px solid #2a2a2a; overflow-y: auto; padding: 24px 0; z-index: 100; }
+.sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px; border-bottom: 1px solid #2a2a2a; margin-bottom: 16px; }
+.sidebar-logo .icon { width: 36px; height: 36px; background: #ff0000; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.sidebar-logo .icon::after { content: ''; border-left: 12px solid white; border-top: 7px solid transparent; border-bottom: 7px solid transparent; margin-left: 3px; }
+.sidebar-logo span { font-weight: 700; font-size: 15px; color: #fff; }
+.sidebar nav { padding: 0 12px; }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: #aaa; text-decoration: none; border-radius: 8px; font-size: 13.5px; transition: all 0.15s; margin-bottom: 2px; }
+.sidebar nav a:hover { background: #252525; color: #fff; }
+.sidebar nav a.active { background: #ff000018; color: #ff4444; font-weight: 600; }
+.sidebar nav a .num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #252525; border-radius: 6px; font-size: 11px; font-weight: 700; color: #888; flex-shrink: 0; }
+.sidebar nav a.active .num { background: #ff000025; color: #ff4444; }
+.nav-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; padding: 16px 16px 8px; }
 
-        /* ── Sidebar ── */
-        .sidebar {
-            position: fixed;
-            top: 0; left: 0;
-            width: 280px;
-            height: 100vh;
-            background: #1a1a1a;
-            border-right: 1px solid #2a2a2a;
-            overflow-y: auto;
-            padding: 24px 0;
-            z-index: 100;
-        }
+.main { margin-left: 280px; max-width: 860px; padding: 48px 56px 120px; }
+.hero { margin-bottom: 56px; padding-bottom: 40px; border-bottom: 1px solid #2a2a2a; }
+.hero h1 { font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.hero h1 span { color: #ff0000; }
+.hero p { font-size: 17px; color: #888; max-width: 600px; }
+.badge-row { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; font-size: 12px; color: #aaa; }
+.badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+.badge .dot.green { background: #4caf50; } .badge .dot.blue { background: #2196f3; }
+.badge .dot.orange { background: #ff9800; } .badge .dot.red { background: #ff0000; }
 
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 24px 24px;
-            border-bottom: 1px solid #2a2a2a;
-            margin-bottom: 16px;
-        }
+section { margin-bottom: 56px; scroll-margin-top: 24px; }
+section h2 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+section h2 .step-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #ff000015; color: #ff4444; border-radius: 8px; font-size: 14px; font-weight: 800; }
+section > p.desc { color: #888; margin-bottom: 24px; font-size: 15px; }
+h3 { font-size: 16px; font-weight: 600; color: #ddd; margin: 28px 0 12px; }
+h3:first-of-type { margin-top: 0; }
+p { margin-bottom: 12px; color: #bbb; font-size: 14.5px; }
 
-        .sidebar-logo .icon {
-            width: 36px; height: 36px;
-            background: #ff0000;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-        }
+pre { background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 18px 20px; margin: 12px 0 20px; overflow-x: auto; position: relative; }
+pre code { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; color: #c9d1d9; line-height: 1.6; }
+.copy-btn { position: absolute; top: 10px; right: 10px; background: #252525; border: 1px solid #333; color: #888; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.copy-btn:hover { background: #333; color: #fff; }
+code:not(pre code) { background: #1e1e1e; padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; color: #ff7b72; border: 1px solid #2a2a2a; }
 
-        .sidebar-logo .icon::after {
-            content: '';
-            border-left: 12px solid white;
-            border-top: 7px solid transparent;
-            border-bottom: 7px solid transparent;
-            margin-left: 3px;
-        }
+.card { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px 24px; margin: 12px 0 20px; }
+.card.warning { border-color: #ff980040; background: #ff980008; }
+.card.warning::before { content: '\26A0  Attention'; display: block; font-weight: 700; font-size: 13px; color: #ff9800; margin-bottom: 8px; }
+.card.success { border-color: #4caf5040; background: #4caf5008; }
+.card.success::before { content: '\2713  Verification'; display: block; font-weight: 700; font-size: 13px; color: #4caf50; margin-bottom: 8px; }
+.card.info { border-color: #2196f340; background: #2196f308; }
+.card.info::before { content: '\2139  Info'; display: block; font-weight: 700; font-size: 13px; color: #2196f3; margin-bottom: 8px; }
+.card.install { border-color: #ff000040; background: #ff000008; }
+.card.install::before { content: '\25B6  Installation rapide'; display: block; font-weight: 700; font-size: 13px; color: #ff4444; margin-bottom: 8px; }
 
-        .sidebar-logo span {
-            font-weight: 700;
-            font-size: 15px;
-            color: #fff;
-        }
+.steps { list-style: none; counter-reset: steps; }
+.steps li { counter-increment: steps; padding: 14px 16px 14px 52px; position: relative; margin-bottom: 4px; border-radius: 8px; font-size: 14.5px; color: #bbb; }
+.steps li::before { content: counter(steps); position: absolute; left: 14px; top: 14px; width: 24px; height: 24px; background: #252525; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #888; }
+.steps li:hover { background: #1a1a1a; }
 
-        .sidebar nav { padding: 0 12px; }
+.tree { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; line-height: 1.8; color: #888; }
+.tree .folder { color: #79c0ff; } .tree .file { color: #aaa; } .tree .important { color: #ff7b72; font-weight: 600; }
 
-        .sidebar nav a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 16px;
-            color: #aaa;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 13.5px;
-            transition: all 0.15s;
-            margin-bottom: 2px;
-        }
+table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+th { text-align: left; padding: 10px 16px; background: #1a1a1a; color: #aaa; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2a2a2a; }
+td { padding: 10px 16px; border-bottom: 1px solid #1e1e1e; color: #bbb; }
+tr:hover td { background: #161616; }
 
-        .sidebar nav a:hover { background: #252525; color: #fff; }
-        .sidebar nav a.active { background: #ff000018; color: #ff4444; font-weight: 600; }
+a { color: #58a6ff; text-decoration: none; } a:hover { text-decoration: underline; }
 
-        .sidebar nav a .num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px; height: 22px;
-            background: #252525;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #888;
-            flex-shrink: 0;
-        }
-
-        .sidebar nav a.active .num { background: #ff000025; color: #ff4444; }
-
-        .nav-section {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #555;
-            padding: 16px 16px 8px;
-        }
-
-        /* ── Main ── */
-        .main {
-            margin-left: 280px;
-            max-width: 860px;
-            padding: 48px 56px 120px;
-        }
-
-        .hero {
-            margin-bottom: 56px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        .hero h1 {
-            font-size: 36px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 12px;
-        }
-
-        .hero h1 span { color: #ff0000; }
-
-        .hero p {
-            font-size: 17px;
-            color: #888;
-            max-width: 600px;
-        }
-
-        .badge-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        .badge .dot {
-            width: 7px; height: 7px;
-            border-radius: 50%;
-        }
-
-        .badge .dot.green { background: #4caf50; }
-        .badge .dot.blue { background: #2196f3; }
-        .badge .dot.orange { background: #ff9800; }
-        .badge .dot.red { background: #ff0000; }
-
-        /* ── Sections ── */
-        section {
-            margin-bottom: 56px;
-            scroll-margin-top: 24px;
-        }
-
-        section h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        section h2 .step-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px; height: 32px;
-            background: #ff000015;
-            color: #ff4444;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        section > p.desc {
-            color: #888;
-            margin-bottom: 24px;
-            font-size: 15px;
-        }
-
-        h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ddd;
-            margin: 28px 0 12px;
-        }
-
-        h3:first-of-type { margin-top: 0; }
-
-        p { margin-bottom: 12px; color: #bbb; font-size: 14.5px; }
-
-        /* ── Code blocks ── */
-        pre {
-            background: #161616;
-            border: 1px solid #2a2a2a;
-            border-radius: 10px;
-            padding: 18px 20px;
-            margin: 12px 0 20px;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        pre code {
-            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-            font-size: 13px;
-            color: #c9d1d9;
-            line-height: 1.6;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: #252525;
-            border: 1px solid #333;
-            color: #888;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .copy-btn:hover { background: #333; color: #fff; }
-
-        code:not(pre code) {
-            background: #1e1e1e;
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-family: 'Cascadia Code', 'Consolas', monospace;
-            font-size: 13px;
-            color: #ff7b72;
-            border: 1px solid #2a2a2a;
-        }
-
-        /* ── Cards ── */
-        .card {
-            background: #161616;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin: 12px 0 20px;
-        }
-
-        .card.warning {
-            border-color: #ff980040;
-            background: #ff980008;
-        }
-
-        .card.warning::before {
-            content: '\26A0  Attention';
-            display: block;
-            font-weight: 700;
-            font-size: 13px;
-            color: #ff9800;
-            margin-bottom: 8px;
-        }
-
-        .card.success {
-            border-color: #4caf5040;
-            background: #4caf5008;
-        }
-
-        .card.success::before {
-            content: '\2713  Verification';
-            display: block;
-            font-weight: 700;
-            font-size: 13px;
-            color: #4caf50;
-            margin-bottom: 8px;
-        }
-
-        .card.info {
-            border-color: #2196f340;
-            background: #2196f308;
-        }
-
-        .card.info::before {
-            content: '\2139  Info';
-            display: block;
-            font-weight: 700;
-            font-size: 13px;
-            color: #2196f3;
-            margin-bottom: 8px;
-        }
-
-        /* ── Steps list ── */
-        .steps {
-            list-style: none;
-            counter-reset: steps;
-        }
-
-        .steps li {
-            counter-increment: steps;
-            padding: 14px 16px 14px 52px;
-            position: relative;
-            margin-bottom: 4px;
-            border-radius: 8px;
-            font-size: 14.5px;
-            color: #bbb;
-        }
-
-        .steps li::before {
-            content: counter(steps);
-            position: absolute;
-            left: 14px; top: 14px;
-            width: 24px; height: 24px;
-            background: #252525;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: #888;
-        }
-
-        .steps li:hover { background: #1a1a1a; }
-
-        /* ── File tree ── */
-        .tree {
-            font-family: 'Cascadia Code', 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.8;
-            color: #888;
-        }
-
-        .tree .folder { color: #79c0ff; }
-        .tree .file { color: #aaa; }
-        .tree .important { color: #ff7b72; font-weight: 600; }
-
-        /* ── Table ── */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0 20px;
-            font-size: 14px;
-        }
-
-        th {
-            text-align: left;
-            padding: 10px 16px;
-            background: #1a1a1a;
-            color: #aaa;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        td {
-            padding: 10px 16px;
-            border-bottom: 1px solid #1e1e1e;
-            color: #bbb;
-        }
-
-        tr:hover td { background: #161616; }
-
-        /* ── Links ── */
-        a { color: #58a6ff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-
-        /* ── Responsive ── */
-        @media (max-width: 900px) {
-            .sidebar { display: none; }
-            .main { margin-left: 0; padding: 32px 24px 80px; }
-        }
-
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        /* ── Smooth scroll ── */
-        html { scroll-behavior: smooth; }
-    </style>
+@media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; padding: 32px 24px 80px; } }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+html { scroll-behavior: smooth; }
+</style>
 </head>
 <body>
 
-<!-- ── Sidebar ── -->
 <div class="sidebar">
-    <div class="sidebar-logo">
-        <div class="icon"></div>
-        <span>Guide d'installation</span>
-    </div>
+    <div class="sidebar-logo"><div class="icon"></div><span>Guide</span></div>
     <nav>
-        <div class="nav-section">Prerequis</div>
-        <a href="#prerequis"><span class="num">0</span> Prerequis</a>
-
         <div class="nav-section">Installation</div>
+        <a href="#auto"><span class="num">&#9654;</span> Installation auto</a>
+
+        <div class="nav-section">Manuel (si besoin)</div>
         <a href="#xampp"><span class="num">1</span> XAMPP</a>
         <a href="#python"><span class="num">2</span> Python</a>
         <a href="#ytdlp"><span class="num">3</span> yt-dlp</a>
         <a href="#ffmpeg"><span class="num">4</span> FFmpeg</a>
-        <a href="#projet"><span class="num">5</span> Fichiers du projet</a>
-        <a href="#config"><span class="num">6</span> Configuration</a>
-
-        <div class="nav-section">Finalisation</div>
+        <a href="#projet"><span class="num">5</span> Projet</a>
+        <a href="#config"><span class="num">6</span> Config</a>
         <a href="#verification"><span class="num">7</span> Verification</a>
         <a href="#autostart"><span class="num">8</span> Demarrage auto</a>
-        <a href="#structure"><span class="num">9</span> Structure du projet</a>
+
+        <div class="nav-section">Extension navigateur</div>
+        <a href="#ext-install"><span class="num">&#9883;</span> Installation</a>
+        <a href="#ext-usage"><span class="num">&#9654;</span> Utilisation</a>
+        <a href="#ext-playlist"><span class="num">&#9776;</span> Playlists</a>
+
+        <div class="nav-section">Fonctionnalites</div>
+        <a href="#features"><span class="num">&#9733;</span> Vue d'ensemble</a>
+        <a href="#feat-app"><span class="num">&#9733;</span> Application web</a>
+        <a href="#feat-ext"><span class="num">&#9733;</span> Extension</a>
+
+        <div class="nav-section">Aide</div>
+        <a href="#structure"><span class="num">9</span> Structure</a>
         <a href="#depannage"><span class="num">!</span> Depannage</a>
     </nav>
 </div>
 
-<!-- ── Main ── -->
 <div class="main">
 
-    <!-- Hero -->
     <div class="hero">
         <h1>YouTube <span>Downloader</span></h1>
-        <p>Guide complet pour installer et configurer l'application sur un nouveau PC Windows.</p>
+        <p>Application web locale + extension navigateur pour telecharger des videos YouTube.</p>
         <div class="badge-row">
             <span class="badge"><span class="dot blue"></span> PHP 8+</span>
             <span class="badge"><span class="dot green"></span> Python 3.x</span>
@@ -431,399 +123,196 @@
         </div>
     </div>
 
-    <!-- 0. Prerequis -->
-    <section id="prerequis">
-        <h2><span class="step-num">0</span> Prerequis</h2>
-        <p class="desc">Ce dont tu as besoin avant de commencer.</p>
-
+    <!-- Installation auto -->
+    <section id="auto">
+        <h2><span class="step-num">&#9654;</span> Installation automatique</h2>
+        <p class="desc">Un seul script fait tout. Aucune connexion internet requise.</p>
+        <div class="card install">
+            <p><strong>Double-cliquer sur <code>install.bat</code></strong> a la racine du projet.</p>
+        </div>
+        <p>Le script fait automatiquement :</p>
+        <ol class="steps">
+            <li>Installe <strong>XAMPP</strong> (Apache + PHP)</li>
+            <li>Installe <strong>Python</strong></li>
+            <li>Copie <strong>yt-dlp.exe</strong> dans <code>C:\yt-tools\</code></li>
+            <li>Extrait <strong>FFmpeg</strong> dans <code>C:\yt-tools\ffmpeg\</code></li>
+            <li>Copie le projet dans <code>C:\xampp\htdocs\youtube\</code></li>
+            <li>Cree les fichiers JSON necessaires</li>
+            <li>Configure automatiquement <code>Config.php</code></li>
+            <li>Propose de lancer Apache et ouvre le navigateur</li>
+        </ol>
         <table>
-            <tr><th>Element</th><th>Version</th><th>Obligatoire</th></tr>
-            <tr><td>Windows</td><td>10 ou 11</td><td>Oui</td></tr>
-            <tr><td>Connexion internet</td><td>-</td><td>Oui (pour les telechargements)</td></tr>
-            <tr><td>Droits administrateur</td><td>-</td><td>Oui (pour XAMPP)</td></tr>
-            <tr><td>Espace disque</td><td>~500 Mo minimum</td><td>+ espace pour les fichiers telecharges</td></tr>
+            <tr><th>Fichier</th><th>Programme</th><th>Taille</th></tr>
+            <tr><td><code>program\xamp.exe</code></td><td>XAMPP</td><td>~150 Mo</td></tr>
+            <tr><td><code>program\python.msix</code></td><td>Python 3.x (optionnel)</td><td>~44 Mo</td></tr>
+            <tr><td><code>program\yt-dlp.exe</code></td><td>yt-dlp standalone</td><td>~18 Mo</td></tr>
+            <tr><td><code>program\ffmpeg.zip</code></td><td>FFmpeg</td><td>~104 Mo</td></tr>
+        </table>
+        <div class="card success">
+            <p>Apres installation : <a href="http://localhost/youtube/">http://localhost/youtube/</a></p>
+        </div>
+    </section>
+
+    <!-- Manuel -->
+    <section id="xampp"><h2><span class="step-num">1</span> XAMPP</h2><p class="desc">Uniquement si install.bat n'a pas ete utilise.</p><p><strong>Hors ligne :</strong> <code>program\xamp.exe</code> | <strong>En ligne :</strong> <a href="https://www.apachefriends.org">apachefriends.org</a></p><p>Chemin : <code>C:\xampp</code>. Cocher Apache + PHP. Lancer Apache.</p></section>
+
+    <section id="python"><h2><span class="step-num">2</span> Python (optionnel)</h2><p class="desc">Utile pour MAJ yt-dlp via pip. L'app fonctionne sans.</p><p><strong>Hors ligne :</strong> <code>program\python.msix</code> | <strong>En ligne :</strong> <a href="https://python.org">python.org</a></p></section>
+
+    <section id="ytdlp"><h2><span class="step-num">3</span> yt-dlp</h2><p class="desc">Telecharge les videos YouTube.</p><p><strong>Hors ligne :</strong> copier <code>program\yt-dlp.exe</code> dans <code>C:\yt-tools\</code></p><p><strong>En ligne :</strong> <code>pip install yt-dlp</code></p></section>
+
+    <section id="ffmpeg"><h2><span class="step-num">4</span> FFmpeg</h2><p class="desc">Convertit audio/video.</p><p><strong>Hors ligne :</strong> dezipper <code>program\ffmpeg.zip</code> dans <code>C:\yt-tools\ffmpeg\</code></p><p><strong>En ligne :</strong> <code>winget install Gyan.FFmpeg</code></p></section>
+
+    <section id="projet"><h2><span class="step-num">5</span> Projet</h2><p class="desc">Copier dans XAMPP.</p><p>Copier le dossier dans <code>C:\xampp\htdocs\youtube\</code>. Creer <code>downloads/</code> et <code>data/</code> si manquants.</p></section>
+
+    <section id="config">
+        <h2><span class="step-num">6</span> Configuration</h2>
+        <p class="desc">Pas necessaire si install.bat a ete utilise.</p>
+        <p>Modifier 4 chemins dans <code>classes\Config.php</code> :</p>
+        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>const YTDLP_PATH = 'C:\\yt-tools\\yt-dlp.exe';
+const FFMPEG_PATH = 'C:\\yt-tools\\ffmpeg\\ffmpeg-8.1-essentials_build\\bin';
+const PYTHON_PATH = 'C:\\Users\\TON_USER\\...\\python.exe';
+const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
+        <div class="card warning"><p>Doubler les antislash : <code>C:\Users</code> → <code>C:\\Users</code></p></div>
+    </section>
+
+    <section id="verification"><h2><span class="step-num">7</span> Verification</h2><p class="desc">Lancer Apache → ouvrir <a href="http://localhost/youtube/">localhost/youtube/</a> → coller une URL → telecharger.</p></section>
+
+    <section id="autostart"><h2><span class="step-num">8</span> Demarrage auto (optionnel)</h2><p class="desc">Raccourci <code>xampp_start.exe</code> dans le dossier Startup (<code>Win+R</code> → <code>shell:startup</code>).</p></section>
+
+    <!-- Extension navigateur -->
+    <section id="ext-install">
+        <h2><span class="step-num">&#9883;</span> Extension — Installation</h2>
+        <p class="desc">L'extension ajoute un bouton de telechargement directement sur YouTube.</p>
+        <ol class="steps">
+            <li>Ouvrir <code>brave://extensions/</code> (ou <code>chrome://extensions/</code>)</li>
+            <li>Activer <strong>Mode developpeur</strong> (en haut a droite)</li>
+            <li>Cliquer <strong>Charger l'extension non empaquetee</strong></li>
+            <li>Selectionner le dossier <code>extension/</code> du projet</li>
+        </ol>
+        <div class="card success"><p>L'icone rouge apparait dans la barre du navigateur. Aller sur YouTube pour tester.</p></div>
+    </section>
+
+    <section id="ext-usage">
+        <h2><span class="step-num">&#9654;</span> Extension — Utilisation</h2>
+        <p class="desc">3 boutons flottants en bas a droite sur chaque video YouTube.</p>
+        <table>
+            <tr><th>Bouton</th><th>Action</th></tr>
+            <tr><td><strong>DL rouge</strong></td><td>Telecharge en 1 clic avec tes preferences sauvegardees. Affiche 0%→100% puis vert ✓</td></tr>
+            <tr><td><strong>Burger gris</strong></td><td>Ouvre le panneau d'options : audio/video, format, qualite, couverture</td></tr>
+            <tr><td><strong>Cloche grise</strong></td><td>Panneau de notifications : fichiers ignores (doublons), erreurs, succes</td></tr>
+        </table>
+        <h3>Bouton DL inline</h3>
+        <p>Un bouton rouge <strong>DL</strong> apparait aussi a cote des boutons Like/Dislike sur YouTube.</p>
+        <h3>Anti-doublons</h3>
+        <p>Si la video est deja dans la bibliotheque, le bouton est <strong>vert ✓</strong>. En cliquant, le panneau s'ouvre avec le message "deja dans ta bibliotheque" — tu peux forcer le re-telechargement via le panneau.</p>
+        <h3>Preferences</h3>
+        <p>Les reglages (format, qualite) sont sauvegardes automatiquement. Le bouton DL utilise toujours les derniers reglages.</p>
+    </section>
+
+    <section id="ext-playlist">
+        <h2><span class="step-num">&#9776;</span> Extension — Playlists</h2>
+        <p class="desc">Telechargement de playlists entieres depuis YouTube.</p>
+        <p>Quand une playlist est detectee (sidebar ou page <code>/playlist</code>), un <strong>bandeau rouge</strong> apparait en haut :</p>
+        <ol class="steps">
+            <li>Le nombre de videos detectees s'affiche (se met a jour au scroll)</li>
+            <li>Cocher <strong>Filtrer par duree</strong> pour definir min/max en minutes</li>
+            <li>Le compteur se met a jour : "18 / 24 videos"</li>
+            <li>Cliquer <strong>Tout telecharger</strong></li>
+            <li>Double barre de progression : video en cours (rouge) + total (vert)</li>
+            <li>Les doublons sont automatiquement ignores et logges dans la cloche</li>
+        </ol>
+    </section>
+
+    <!-- Fonctionnalites -->
+    <section id="features">
+        <h2><span class="step-num">&#9733;</span> Toutes les fonctionnalites</h2>
+        <p class="desc">Vue d'ensemble complete.</p>
+        <table>
+            <tr><th>Fonctionnalite</th><th>Description</th></tr>
+            <tr><td>Telechargement</td><td>MP3, FLAC, WAV, AAC, OGG, MP4, MKV, WEBM + choix qualite</td></tr>
+            <tr><td>Recherche YouTube</td><td>Onglet dedie dans l'app, 10 resultats</td></tr>
+            <tr><td>File d'attente</td><td>Telechargements sequentiels avec statut</td></tr>
+            <tr><td>Playlists</td><td>Detection auto + filtre duree + anti-doublons</td></tr>
+            <tr><td>Bibliotheque</td><td>Dossiers, drag &amp; drop, selection multiple, gros boutons</td></tr>
+            <tr><td>Lecteur</td><td>Audio/video, playlist, boucle, aleatoire</td></tr>
+            <tr><td>Profils</td><td>Preferences par utilisateur</td></tr>
+            <tr><td>Theme</td><td>Sombre (defaut) / clair style YouTube</td></tr>
+            <tr><td>Historique</td><td>Vues, likes, annee de diffusion</td></tr>
+            <tr><td>Stats</td><td>Espace disque, duree totale</td></tr>
+            <tr><td>MAJ yt-dlp</td><td>Bouton dans la bibliotheque</td></tr>
+            <tr><td>Notifications</td><td>Navigateur + panneau cloche extension</td></tr>
+            <tr><td>Retry auto</td><td>Relance jusqu'a 2 fois en cas d'echec</td></tr>
+            <tr><td>Anti-doublons</td><td>Verification avant chaque telechargement</td></tr>
+            <tr><td>Extension</td><td>Bouton DL, panneau options, playlists, log</td></tr>
         </table>
     </section>
 
-    <!-- 1. XAMPP -->
-    <section id="xampp">
-        <h2><span class="step-num">1</span> Installer XAMPP</h2>
-        <p class="desc">XAMPP fournit Apache (serveur web) et PHP dont l'application a besoin.</p>
-
-        <h3>Telechargement</h3>
-        <ol class="steps">
-            <li>Aller sur <a href="https://www.apachefriends.org/fr/index.html" target="_blank">apachefriends.org</a></li>
-            <li>Telecharger la version Windows (PHP 8.x)</li>
-            <li>Lancer l'installateur <code>xampp-windows-x64-8.x.x-installer.exe</code></li>
-        </ol>
-
-        <h3>Installation</h3>
-        <ol class="steps">
-            <li>Chemin d'installation : laisser <code>C:\xampp</code> (par defaut)</li>
-            <li>Composants : cocher au minimum <strong>Apache</strong> et <strong>PHP</strong> (MySQL optionnel)</li>
-            <li>Terminer l'installation et lancer XAMPP Control Panel</li>
-            <li>Cliquer sur <strong>Start</strong> a cote de <strong>Apache</strong></li>
-        </ol>
-
-        <div class="card success">
-            <p>Ouvrir <a href="http://localhost/" target="_blank">http://localhost/</a> dans le navigateur. Si la page XAMPP s'affiche, c'est bon.</p>
-        </div>
-
-        <div class="card warning">
-            <p>Si le port 80 est deja utilise (Skype, IIS, etc.), XAMPP ne pourra pas demarrer Apache. Fermer l'application qui utilise le port ou changer le port Apache dans <code>C:\xampp\apache\conf\httpd.conf</code>.</p>
-        </div>
+    <section id="feat-app">
+        <h2><span class="step-num">&#9733;</span> Application web</h2>
+        <p class="desc">Fonctionnalites de l'interface locale.</p>
+        <h3>Onglets</h3><p>Telecharger, Recherche, Bibliotheque, Profil. L'onglet actif est sauvegarde.</p>
+        <h3>Bibliotheque</h3><p>Gros boutons : <strong>Tout selectionner</strong> (bleu), <strong>Deselectionner</strong> (gris), <strong>Lire</strong> (rouge), <strong>Supprimer</strong> (rouge fonce). Drag &amp; drop avec animation. Stats en haut (total, audio, video, disque, duree).</p>
+        <h3>Theme</h3><p>Bouton soleil/lune en haut a droite. Sombre = fond noir. Clair = style YouTube blanc.</p>
+        <h3>Historique</h3><p>Bibliotheque → bouton Historique. Vues, likes, annee pour chaque entree.</p>
     </section>
 
-    <!-- 2. Python -->
-    <section id="python">
-        <h2><span class="step-num">2</span> Installer Python</h2>
-        <p class="desc">Python est necessaire pour faire fonctionner yt-dlp.</p>
-
-        <h3>Telechargement</h3>
-        <ol class="steps">
-            <li>Aller sur <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a></li>
-            <li>Telecharger la derniere version de Python 3.x pour Windows</li>
-            <li>Lancer l'installateur</li>
-        </ol>
-
-        <h3>Installation</h3>
-        <ol class="steps">
-            <li><strong>IMPORTANT</strong> : cocher la case <strong>"Add Python to PATH"</strong> en bas de l'ecran d'installation</li>
-            <li>Cliquer sur <strong>"Install Now"</strong></li>
-            <li>Attendre la fin et fermer</li>
-        </ol>
-
-        <div class="card success">
-            <p>Ouvrir un terminal (Win+R &rarr; <code>cmd</code>) et taper :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>python --version</code></pre>
-        <p>Doit afficher <code>Python 3.x.x</code>. Si "non reconnu", redemarrer le PC et reessayer.</p>
+    <section id="feat-ext">
+        <h2><span class="step-num">&#9733;</span> Extension navigateur</h2>
+        <p class="desc">Fonctionnalites de l'extension Chrome/Brave.</p>
+        <h3>Boutons flottants</h3><p>DL (rouge), Menu (gris), Cloche (gris) en bas a droite + DL inline a cote des likes.</p>
+        <h3>Panneau options</h3><p>Audio/Video, format, qualite, couverture. Preferences sauvegardees. Barre de progression.</p>
+        <h3>Playlists</h3><p>Bandeau en haut, filtre duree min/max, compteur auto au scroll, double progression, anti-doublons avec log.</p>
+        <h3>Notifications</h3><p>Panneau cloche : fichiers ignores (doublons avec nom utilisateur), erreurs, succes avec heure.</p>
     </section>
 
-    <!-- 3. yt-dlp -->
-    <section id="ytdlp">
-        <h2><span class="step-num">3</span> Installer yt-dlp</h2>
-        <p class="desc">yt-dlp est l'outil qui telecharge les videos/audios depuis YouTube.</p>
-
-        <h3>Installation via pip</h3>
-        <p>Ouvrir un terminal (<code>cmd</code>) et executer :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>pip install yt-dlp</code></pre>
-
-        <h3>Trouver le chemin de yt-dlp</h3>
-        <p>Apres l'installation, il faut connaitre le chemin exact de l'executable :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>where yt-dlp</code></pre>
-        <p>La commande affiche quelque chose comme :</p>
-        <pre><code>C:\Users\TON_USER\AppData\Local\Programs\Python\Python3xx\Scripts\yt-dlp.exe</code></pre>
-
-        <div class="card info">
-            <p><strong>Note bien ce chemin !</strong> Tu en auras besoin a l'etape 6 pour configurer l'application.</p>
-        </div>
-
-        <div class="card success">
-            <p>Tester que ca marche :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>yt-dlp --version</code></pre>
-    </section>
-
-    <!-- 4. FFmpeg -->
-    <section id="ffmpeg">
-        <h2><span class="step-num">4</span> Installer FFmpeg</h2>
-        <p class="desc">FFmpeg convertit les formats audio/video (MP3, AAC, etc.).</p>
-
-        <h3>Methode 1 : via winget (recommandee)</h3>
-        <p>Ouvrir un terminal en <strong>administrateur</strong> et executer :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>winget install Gyan.FFmpeg</code></pre>
-
-        <h3>Methode 2 : installation manuelle</h3>
-        <ol class="steps">
-            <li>Aller sur <a href="https://www.gyan.dev/ffmpeg/builds/" target="_blank">gyan.dev/ffmpeg/builds</a></li>
-            <li>Telecharger <strong>ffmpeg-release-full.7z</strong></li>
-            <li>Extraire le dossier (ex: dans <code>C:\ffmpeg\</code>)</li>
-            <li>Le dossier <code>bin\</code> contient <code>ffmpeg.exe</code>, <code>ffprobe.exe</code>, <code>ffplay.exe</code></li>
-        </ol>
-
-        <h3>Trouver le chemin du dossier bin</h3>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>where ffmpeg</code></pre>
-        <p>Si installe via winget, le chemin ressemble a :</p>
-        <pre><code>C:\Users\TON_USER\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_...\ffmpeg-x.x-full_build\bin\</code></pre>
-        <p>Si installe manuellement :</p>
-        <pre><code>C:\ffmpeg\bin\</code></pre>
-
-        <div class="card info">
-            <p><strong>Note bien le chemin du dossier <code>bin</code></strong> (pas le chemin de ffmpeg.exe, le dossier qui le contient). Tu en auras besoin a l'etape 6.</p>
-        </div>
-
-        <div class="card success">
-            <p>Verifier l'installation :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>ffmpeg -version</code></pre>
-
-        <div class="card warning">
-            <p>Si <code>ffmpeg</code> n'est pas reconnu dans le terminal, il faut l'ajouter au PATH Windows :<br>
-            Parametres &rarr; Systeme &rarr; A propos &rarr; Parametres avances &rarr; Variables d'environnement &rarr; Path &rarr; Ajouter le chemin du dossier <code>bin</code>.</p>
-        </div>
-    </section>
-
-    <!-- 5. Fichiers du projet -->
-    <section id="projet">
-        <h2><span class="step-num">5</span> Copier les fichiers du projet</h2>
-        <p class="desc">Placer l'application dans le bon dossier de XAMPP.</p>
-
-        <h3>Copier le projet</h3>
-        <ol class="steps">
-            <li>Copier tout le dossier <code>youtube</code> du PC source</li>
-            <li>Coller dans <code>C:\xampp\htdocs\</code> sur le nouveau PC</li>
-            <li>Le resultat doit etre <code>C:\xampp\htdocs\youtube\</code></li>
-        </ol>
-
-        <h3>Verifier les dossiers necessaires</h3>
-        <p>Ces dossiers doivent exister. S'ils manquent, les creer :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>mkdir C:\xampp\htdocs\youtube\downloads
-mkdir C:\xampp\htdocs\youtube\data</code></pre>
-
-        <h3>Fichiers de donnees</h3>
-        <p>Si les fichiers JSON n'existent pas, les creer vides :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>echo {"folders":[],"items":[]} > C:\xampp\htdocs\youtube\data\library.json
-echo {"profiles":[]} > C:\xampp\htdocs\youtube\data\profiles.json</code></pre>
-
-        <div class="card warning">
-            <p>Ne PAS copier les fichiers du dossier <code>downloads\</code> du PC source (sauf si tu veux garder les fichiers telecharges). Les fichiers temporaires (.log, .done) ne doivent pas etre copies.</p>
-        </div>
-    </section>
-
-    <!-- 6. Configuration -->
-    <section id="config">
-        <h2><span class="step-num">6</span> Configurer les chemins</h2>
-        <p class="desc">Adapter la configuration aux chemins du nouveau PC. C'est l'etape la plus importante.</p>
-
-        <h3>Ouvrir le fichier de configuration</h3>
-        <p>Ouvrir <code>C:\xampp\htdocs\youtube\classes\Config.php</code> dans un editeur de texte (Notepad, VS Code, etc.).</p>
-
-        <h3>Modifier les 3 chemins</h3>
-        <p>Remplacer les chemins en haut du fichier par ceux de ton PC :</p>
-
-        <p>Ouvrir <code>classes\Config.php</code> et modifier uniquement ces 3 lignes (en haut du fichier) :</p>
-
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code class="language-php">// Ligne 13 — Remplacer par le resultat de : where yt-dlp
-const YTDLP_PATH = 'C:\\Users\\TON_USER\\...\\Scripts\\yt-dlp.exe';
-
-// Ligne 16 — Remplacer par le resultat de : where ffmpeg
-// ATTENTION : c'est le DOSSIER bin, pas ffmpeg.exe
-const FFMPEG_PATH = 'C:\\Users\\TON_USER\\...\\ffmpeg-x.x-full_build\\bin';
-
-// Ligne 19 — Ne change pas si XAMPP installe dans C:\xampp
-const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
-
-        <div class="card info">
-            <p>Le reste du fichier <code>Config.php</code> n'a pas besoin d'etre modifie. Seuls ces 3 chemins changent d'un PC a l'autre.</p>
-        </div>
-
-        <div class="card warning">
-            <p><strong>Attention aux antislash !</strong> En PHP, il faut doubler les <code>\</code> dans les chemins Windows :<br>
-            <code>C:\Users\...</code> devient <code>C:\\Users\\...</code><br><br>
-            Verifie bien que chaque <code>\</code> est double dans les chemins.</p>
-        </div>
-
-        <h3>Exemple concret</h3>
-        <p>Si ton nom d'utilisateur Windows est <code>jean</code> et que tu as installe Python 3.12 :</p>
-        <pre><code>const YTDLP_PATH = 'C:\\Users\\jean\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\yt-dlp.exe';
-const FFMPEG_PATH = 'C:\\ffmpeg\\bin';
-const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
-    </section>
-
-    <!-- 7. Verification -->
-    <section id="verification">
-        <h2><span class="step-num">7</span> Verification</h2>
-        <p class="desc">Tester que tout fonctionne correctement.</p>
-
-        <h3>1. Verifier Apache</h3>
-        <ol class="steps">
-            <li>Ouvrir XAMPP Control Panel</li>
-            <li>Cliquer <strong>Start</strong> a cote de <strong>Apache</strong> (le fond devient vert)</li>
-            <li>Ouvrir <a href="http://localhost/" target="_blank">http://localhost/</a> &rarr; la page XAMPP doit s'afficher</li>
-        </ol>
-
-        <h3>2. Verifier l'application</h3>
-        <ol class="steps">
-            <li>Ouvrir <a href="http://localhost/youtube/" target="_blank">http://localhost/youtube/</a></li>
-            <li>L'interface du YouTube Downloader doit apparaitre</li>
-        </ol>
-
-        <h3>3. Tester un telechargement</h3>
-        <ol class="steps">
-            <li>Coller une URL YouTube dans le champ de saisie</li>
-            <li>Cliquer sur <strong>Telecharger</strong></li>
-            <li>Les infos de la video doivent s'afficher (titre, miniature)</li>
-            <li>La barre de progression doit avancer</li>
-            <li>Le fichier doit apparaitre dans la bibliotheque une fois termine</li>
-        </ol>
-
-        <h3>4. Verifier les chemins en cas de probleme</h3>
-        <p>Ouvrir un terminal et tester chaque outil :</p>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>:: Tester PHP
-C:\xampp\php\php.exe -v
-
-:: Tester yt-dlp (remplacer par ton chemin)
-"C:\Users\TON_USER\...\yt-dlp.exe" --version
-
-:: Tester ffmpeg (remplacer par ton chemin)
-"C:\Users\TON_USER\...\bin\ffmpeg.exe" -version</code></pre>
-
-        <div class="card success">
-            <p>Si les 3 commandes affichent une version, la configuration est correcte.</p>
-        </div>
-    </section>
-
-    <!-- 8. Demarrage auto -->
-    <section id="autostart">
-        <h2><span class="step-num">8</span> Demarrage automatique (optionnel)</h2>
-        <p class="desc">Lancer XAMPP automatiquement au demarrage de Windows pour ne plus avoir a y penser.</p>
-
-        <h3>Creer le raccourci de demarrage</h3>
-        <ol class="steps">
-            <li>Ouvrir l'Explorateur de fichiers</li>
-            <li>Aller dans <code>C:\xampp\</code></li>
-            <li>Clic droit sur <code>xampp_start.exe</code> &rarr; <strong>Creer un raccourci</strong></li>
-            <li>Renommer le raccourci en <code>XAMPP AutoStart</code></li>
-            <li>Appuyer sur <strong>Win+R</strong>, taper <code>shell:startup</code> et valider</li>
-            <li>Deplacer le raccourci dans le dossier qui s'ouvre</li>
-        </ol>
-
-        <div class="card info">
-            <p>Au prochain demarrage de Windows, XAMPP (Apache) se lancera automatiquement en arriere-plan. L'application sera accessible sur <code>http://localhost/youtube/</code> sans rien faire.</p>
-        </div>
-
-        <h3>Raccourci bureau (optionnel)</h3>
-        <p>Pour creer un raccourci sur le bureau qui ouvre directement l'application :</p>
-        <ol class="steps">
-            <li>Clic droit sur le Bureau &rarr; <strong>Nouveau</strong> &rarr; <strong>Raccourci</strong></li>
-            <li>Emplacement : <code>http://localhost/youtube/</code></li>
-            <li>Nom : <code>YouTube Downloader</code></li>
-        </ol>
-    </section>
-
-    <!-- 9. Structure -->
+    <!-- Structure -->
     <section id="structure">
         <h2><span class="step-num">9</span> Structure du projet</h2>
-        <p class="desc">Organisation des fichiers pour comprendre le projet.</p>
-
-        <div class="card">
-            <div class="tree">
-                <span class="folder">youtube/</span><br>
-                ├── <span class="important">index.php</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Page principale<br>
-                ├── <span class="important">worker.php</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Processus de telechargement<br>
-                │<br>
-                ├── <span class="folder">classes/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Logique PHP<br>
-                │&nbsp;&nbsp; ├── <span class="important">Config.php</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Configuration (chemins a modifier)<br>
-                │&nbsp;&nbsp; ├── <span class="file">YouTubeDownloader.php</span><br>
-                │&nbsp;&nbsp; ├── <span class="file">ProgressTracker.php</span><br>
-                │&nbsp;&nbsp; ├── <span class="file">Library.php</span><br>
-                │&nbsp;&nbsp; └── <span class="file">Profile.php</span><br>
-                │<br>
-                ├── <span class="folder">api/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoints API<br>
-                │&nbsp;&nbsp; ├── <span class="file">info.php</span><br>
-                │&nbsp;&nbsp; ├── <span class="file">download.php</span><br>
-                │&nbsp;&nbsp; ├── <span class="file">progress.php</span><br>
-                │&nbsp;&nbsp; ├── <span class="file">library.php</span><br>
-                │&nbsp;&nbsp; └── <span class="file">profile.php</span><br>
-                │<br>
-                ├── <span class="folder">assets/</span><br>
-                │&nbsp;&nbsp; ├── <span class="folder">css/</span> <span class="file">style.css</span><br>
-                │&nbsp;&nbsp; └── <span class="folder">js/</span>&nbsp; <span class="file">app.js</span><br>
-                │<br>
-                ├── <span class="folder">data/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Donnees (JSON)<br>
-                │&nbsp;&nbsp; ├── <span class="file">library.json</span><br>
-                │&nbsp;&nbsp; └── <span class="file">profiles.json</span><br>
-                │<br>
-                └── <span class="folder">downloads/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fichiers telecharges<br>
-            </div>
-        </div>
-
-        <h3>Technologies utilisees</h3>
-        <table>
-            <tr><th>Composant</th><th>Technologie</th><th>Role</th></tr>
-            <tr><td>Serveur web</td><td>Apache (XAMPP)</td><td>Sert les pages PHP</td></tr>
-            <tr><td>Backend</td><td>PHP 8+</td><td>API, logique metier</td></tr>
-            <tr><td>Frontend</td><td>HTML/CSS/JS vanilla</td><td>Interface utilisateur</td></tr>
-            <tr><td>Telechargement</td><td>yt-dlp (Python)</td><td>Recupere les videos YouTube</td></tr>
-            <tr><td>Conversion</td><td>FFmpeg</td><td>Convertit audio/video</td></tr>
-            <tr><td>Stockage</td><td>Fichiers JSON</td><td>Bibliotheque et profils</td></tr>
-        </table>
+        <div class="card"><div class="tree">
+            <span class="folder">youtube/</span><br>
+            ├── <span class="important">install.bat</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Installation auto<br>
+            ├── <span class="important">index.php</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Page principale<br>
+            ├── <span class="file">worker.php</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Telechargement arriere-plan<br>
+            ├── <span class="file">docs.html</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Cette documentation<br>│<br>
+            ├── <span class="folder">classes/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PHP<br>
+            │&nbsp;&nbsp; ├── <span class="important">Config.php</span><br>│&nbsp;&nbsp; ├── <span class="file">YouTubeDownloader.php</span><br>│&nbsp;&nbsp; ├── <span class="file">ProgressTracker.php</span><br>│&nbsp;&nbsp; ├── <span class="file">Library.php</span><br>│&nbsp;&nbsp; └── <span class="file">Profile.php</span><br>│<br>
+            ├── <span class="folder">api/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; API<br>
+            │&nbsp;&nbsp; ├── <span class="file">info.php, download.php, progress.php</span><br>│&nbsp;&nbsp; ├── <span class="file">library.php, profile.php</span><br>│&nbsp;&nbsp; ├── <span class="file">search.php, playlist.php</span><br>│&nbsp;&nbsp; └── <span class="file">history.php, system.php</span><br>│<br>
+            ├── <span class="folder">assets/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CSS + JS + icone<br>│<br>
+            ├── <span class="folder">extension/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Extension Chrome/Brave<br>
+            │&nbsp;&nbsp; ├── <span class="file">manifest.json, popup.html, popup.js</span><br>│&nbsp;&nbsp; ├── <span class="file">content.js, content.css</span><br>│&nbsp;&nbsp; └── <span class="file">icon48.png, icon128.png</span><br>│<br>
+            ├── <span class="folder">data/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; JSON<br>│<br>
+            ├── <span class="folder">downloads/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fichiers<br>│<br>
+            └── <span class="folder">program/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Installateurs hors ligne<br>
+        </div></div>
     </section>
 
     <!-- Depannage -->
     <section id="depannage">
         <h2><span class="step-num">!</span> Depannage</h2>
-        <p class="desc">Solutions aux problemes les plus courants.</p>
-
-        <h3>La page affiche une erreur PHP</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> Les chemins dans <code>Config.php</code> sont incorrects.</p>
-            <p><strong>Solution :</strong> Verifier chaque chemin avec <code>where yt-dlp</code> et <code>where ffmpeg</code> dans le terminal. S'assurer que les <code>\</code> sont doubles.</p>
-        </div>
-
-        <h3>La video est reconnue mais le telechargement ne demarre pas</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> Le worker PHP ne se lance pas en arriere-plan.</p>
-            <p><strong>Solution :</strong> Verifier que le chemin <code>PHP_PATH</code> dans Config.php est correct. Tester dans le terminal :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>C:\xampp\php\php.exe -v</code></pre>
-
-        <h3>yt-dlp retourne une erreur</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> yt-dlp n'est pas a jour (YouTube change souvent ses protections).</p>
-            <p><strong>Solution :</strong> Mettre a jour yt-dlp :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>pip install -U yt-dlp</code></pre>
-
-        <h3>Le fichier telecharge n'a pas de son (video)</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> FFmpeg n'est pas trouve pour fusionner audio+video.</p>
-            <p><strong>Solution :</strong> Verifier que <code>FFMPEG_PATH</code> dans Config.php pointe bien vers le dossier <code>bin\</code> contenant <code>ffmpeg.exe</code>.</p>
-        </div>
-
-        <h3>Apache ne demarre pas (port 80 occupe)</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> Un autre programme utilise le port 80.</p>
-            <p><strong>Solution :</strong> Dans le terminal administrateur, trouver le programme :</p>
-        </div>
-        <pre><button class="copy-btn" onclick="copyCode(this)">Copier</button><code>netstat -ano | findstr :80</code></pre>
-        <p>Puis fermer le programme en question, ou changer le port Apache.</p>
-
-        <h3>Erreur "Video protegee" ou telechargement qui echoue</h3>
-        <div class="card">
-            <p><strong>Cause :</strong> Certaines videos sont protegees par YouTube (DRM, restrictions regionales, etc.).</p>
-            <p><strong>Solution :</strong> L'application retente automatiquement jusqu'a 2 fois. Si ca echoue quand meme, la video n'est probablement pas telechargeable. Essayer de mettre a jour yt-dlp.</p>
-        </div>
+        <h3>Erreur PHP</h3><div class="card"><p>Chemins incorrects dans <code>Config.php</code>. Verifier avec <code>where yt-dlp</code> et <code>where ffmpeg</code>.</p></div>
+        <h3>Telechargement ne demarre pas</h3><div class="card"><p>Verifier <code>PHP_PATH</code>. Tester : <code>C:\xampp\php\php.exe -v</code></p></div>
+        <h3>yt-dlp erreur</h3><div class="card"><p>Mettre a jour via le bouton dans la bibliotheque ou <code>pip install -U yt-dlp</code></p></div>
+        <h3>Apache port 80</h3><div class="card"><p><code>netstat -ano | findstr :80</code> pour trouver le programme qui bloque.</p></div>
+        <h3>Extension : serveur off</h3><div class="card"><p>Apache n'est pas lance. Ouvrir XAMPP → Start Apache.</p></div>
+        <h3>Extension : boutons n'apparaissent pas</h3><div class="card"><p><code>brave://extensions/</code> → recharger l'extension. Si erreur JS, verifier la console (F12).</p></div>
+        <h3>Video protegee</h3><div class="card"><p>L'app retente 2 fois. Si echec, mettre a jour yt-dlp.</p></div>
     </section>
 
 </div>
 
 <script>
-// Copy button
 function copyCode(btn) {
     const code = btn.parentElement.querySelector('code');
-    navigator.clipboard.writeText(code.textContent).then(() => {
-        btn.textContent = 'Copie !';
-        setTimeout(() => btn.textContent = 'Copier', 1500);
-    });
+    navigator.clipboard.writeText(code.textContent).then(() => { btn.textContent = 'Copie !'; setTimeout(() => btn.textContent = 'Copier', 1500); });
 }
-
-// Active sidebar link on scroll
 const sections = document.querySelectorAll('section');
 const navLinks = document.querySelectorAll('.sidebar nav a');
-
 window.addEventListener('scroll', () => {
     let current = '';
-    sections.forEach(s => {
-        if (window.scrollY >= s.offsetTop - 100) current = s.id;
-    });
-    navLinks.forEach(a => {
-        a.classList.remove('active');
-        if (a.getAttribute('href') === '#' + current) a.classList.add('active');
-    });
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(a => { a.classList.remove('active'); if (a.getAttribute('href') === '#' + current) a.classList.add('active'); });
 });
 </script>
-
 </body>
 </html>

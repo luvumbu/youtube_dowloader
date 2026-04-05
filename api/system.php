@@ -6,6 +6,9 @@
  * POST /api/system.php action=update  → met a jour yt-dlp via pip
  */
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/../classes/Config.php';
 
@@ -37,9 +40,19 @@ switch ($action) {
         break;
 
     case 'update':
-        $cmd = 'pip install -U yt-dlp 2>&1';
+        // Methode 1 : yt-dlp --update
+        $cmd = '"' . Config::YTDLP_PATH . '" --update 2>&1';
         $output = shell_exec($cmd);
-        $success = strpos($output, 'Successfully') !== false || strpos($output, 'already satisfied') !== false;
+        $success = strpos($output, 'Updated') !== false
+            || strpos($output, 'up to date') !== false
+            || strpos($output, 'is up-to-date') !== false;
+
+        // Methode 2 : python -m pip (fallback)
+        if (!$success && defined('Config::PYTHON_PATH') && file_exists(Config::PYTHON_PATH)) {
+            $cmd = '"' . Config::PYTHON_PATH . '" -m pip install -U yt-dlp 2>&1';
+            $output = shell_exec($cmd);
+            $success = strpos($output, 'Successfully') !== false || strpos($output, 'already satisfied') !== false;
+        }
 
         // Nouvelle version
         $versionCmd = '"' . Config::YTDLP_PATH . '" --version 2>&1';

@@ -7,6 +7,9 @@
  * POST /api/history.php action=clear
  */
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/../classes/Config.php';
 
@@ -33,12 +36,17 @@ switch ($action) {
     case 'add':
         $history = loadHistory($historyFile);
         array_unshift($history, [
-            'title'  => $_POST['title'] ?? '',
-            'status' => $_POST['status'] ?? 'success',
-            'format' => $_POST['format'] ?? '',
-            'type'   => $_POST['type'] ?? '',
-            'url'    => $_POST['url'] ?? '',
-            'date'   => date('Y-m-d H:i:s')
+            'title'    => $_POST['title'] ?? '',
+            'status'   => $_POST['status'] ?? 'success',
+            'format'   => $_POST['format'] ?? '',
+            'type'     => $_POST['type'] ?? '',
+            'url'      => $_POST['url'] ?? '',
+            'channel'  => $_POST['channel'] ?? '',
+            'views'    => $_POST['views'] ?? '',
+            'year'     => $_POST['year'] ?? '',
+            'likes'    => $_POST['likes'] ?? '',
+            'dislikes' => $_POST['dislikes'] ?? '',
+            'date'     => date('Y-m-d H:i:s')
         ]);
         // Garder max 200 entrees
         $history = array_slice($history, 0, 200);

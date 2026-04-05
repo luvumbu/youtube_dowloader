@@ -1,213 +1,160 @@
-# YouTube Downloader - Documentation Projet
+# YouTube Downloader
 
 ## Description
-Application web locale (XAMPP) permettant de telecharger des videos et audios YouTube
-avec gestion de bibliotheque, profils utilisateur et lecteur multimedia integre.
+Application web locale + extension navigateur permettant de telecharger des videos
+et audios YouTube avec recherche integree, file d'attente, playlists, gestion de
+bibliotheque, profils utilisateur et lecteur multimedia integre.
+
+## Installation
+**Double-cliquer sur `install.bat`** — installe tout automatiquement :
+XAMPP, Python, yt-dlp, FFmpeg, copie le projet et configure les chemins.
+Tout est hors ligne dans le dossier `program/`.
 
 ## Stack technique
 - **Backend** : PHP 8+ (XAMPP Apache)
-- **Frontend** : HTML5, CSS3, JavaScript vanilla (pas de framework)
-- **Telechargement** : yt-dlp (Python) + ffmpeg
-- **Stockage** : fichiers JSON (pas de base de donnees)
-- **OS** : Windows 11
+- **Frontend** : HTML5, CSS3, JavaScript vanilla
+- **Extension** : Chrome/Brave (Manifest V3)
+- **Telechargement** : yt-dlp + ffmpeg
+- **Stockage** : fichiers JSON
+- **OS** : Windows 10/11
 
-## Chemins systeme importants
-- **Projet** : `C:\xampp\htdocs\youtube\`
-- **yt-dlp** : `C:\Users\maste\AppData\Local\Python\pythoncore-3.14-64\Scripts\yt-dlp.exe`
-- **ffmpeg** : `C:\Users\maste\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1-full_build\bin\`
-- **PHP** : `C:\xampp\php\php.exe`
-- **URL locale** : `http://localhost/youtube/`
-- **Demarrage auto XAMPP** : raccourci dans `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`
+## Chemins systeme
+Configures automatiquement par `install.bat` dans `classes/Config.php` :
+- `YTDLP_PATH` : yt-dlp.exe
+- `FFMPEG_PATH` : dossier bin de ffmpeg
+- `PYTHON_PATH` : python.exe (optionnel)
+- `PHP_PATH` : php.exe de XAMPP
+- **URL** : `http://localhost/youtube/`
 
 ## Architecture des fichiers
 
 ```
 youtube/
-├── index.php                  # Page HTML principale (structure uniquement)
+├── install.bat                # Installation automatique tout-en-un
+├── index.php                  # Page HTML principale
 ├── worker.php                 # Processus arriere-plan de telechargement
+├── docs.html                  # Guide d'installation et fonctionnalites (web)
 │
-├── classes/                   # Logique metier PHP (POO)
-│   ├── Config.php             # Configuration centralisee (chemins, constantes, validation)
-│   ├── YouTubeDownloader.php  # Telechargement : infos video, lancement worker, commandes yt-dlp
-│   ├── ProgressTracker.php    # Suivi progression : lecture log, parsing %, detection fin
-│   ├── Library.php            # Bibliotheque : CRUD items et dossiers virtuels
-│   └── Profile.php            # Profils : CRUD utilisateurs et preferences
+├── classes/                   # Logique metier PHP
+│   ├── Config.php             # Chemins et constantes (configure par install.bat)
+│   ├── YouTubeDownloader.php  # Telechargement : infos (vues/likes/annee), worker, yt-dlp
+│   ├── ProgressTracker.php    # Suivi progression temps reel
+│   ├── Library.php            # Bibliotheque : CRUD items/dossiers, check doublons par URL
+│   └── Profile.php            # Profils utilisateur et preferences
 │
-├── api/                       # Endpoints API (JSON)
-│   ├── info.php               # POST url → {title, thumbnail, duration, channel}
-│   ├── download.php           # POST url,type,format,quality,cover → {jobId}
-│   ├── progress.php           # GET id → {status, percent, message, file?}
-│   ├── library.php            # POST/GET action → CRUD bibliotheque
-│   └── profile.php            # POST/GET action → CRUD profils
+├── api/                       # Endpoints API (JSON, CORS active)
+│   ├── info.php               # Infos video (titre, vues, likes, annee, duree)
+│   ├── download.php           # Lance un telechargement
+│   ├── progress.php           # Suivi progression
+│   ├── library.php            # CRUD bibliotheque + check_url (anti-doublons)
+│   ├── profile.php            # CRUD profils
+│   ├── search.php             # Recherche YouTube
+│   ├── playlist.php           # Import playlists
+│   ├── history.php            # Historique (vues, likes, annee)
+│   └── system.php             # Version yt-dlp, MAJ, espace disque
 │
 ├── assets/
-│   ├── css/
-│   │   └── style.css          # Tous les styles CSS
-│   ├── js/
-│   │   └── app.js             # Tout le JavaScript frontend
-│   └── youtube.ico            # Icone raccourci bureau
+│   ├── css/style.css          # Styles (theme sombre YouTube / clair YouTube)
+│   ├── js/app.js              # Logique frontend
+│   └── youtube.ico            # Icone
 │
-├── data/                      # Donnees persistantes (JSON)
-│   ├── library.json           # Items telecharges + dossiers virtuels
-│   └── profiles.json          # Profils utilisateur + preferences
+├── extension/                 # Extension Chrome/Brave
+│   ├── manifest.json          # Manifest V3
+│   ├── popup.html/js          # Popup de l'extension
+│   ├── content.js             # Script injecte sur YouTube
+│   ├── content.css            # Styles du bouton DL et panneaux
+│   ├── icon48.png             # Icone 48px
+│   └── icon128.png            # Icone 128px
 │
-├── downloads/                 # Fichiers telecharges (MP3, MP4, etc.)
-│                              # Nettoyage auto des fichiers > 1h (temporaires)
-│                              # Les fichiers dans library.json sont conserves
+├── data/                      # Donnees JSON
+│   ├── library.json           # Items + dossiers + URL (anti-doublons)
+│   ├── profiles.json          # Profils
+│   └── history.json           # Historique (max 200)
 │
-├── docs.html                  # Guide d'installation (interface web)
+├── downloads/                 # Fichiers telecharges
+│
+├── program/                   # Installateurs hors ligne
+│   ├── xamp.exe               # XAMPP (~150 Mo)
+│   ├── python.msix            # Python 3.x (~44 Mo)
+│   ├── yt-dlp.exe             # yt-dlp standalone (~18 Mo)
+│   └── ffmpeg.zip             # FFmpeg (~104 Mo)
+│
 └── CLAUDE.md                  # Ce fichier
 ```
 
-## Classes PHP - Detail
+## Fonctionnalites
 
-### Config.php
-Classe statique de configuration. Tous les chemins et constantes sont ici.
-- `YTDLP_PATH`, `FFMPEG_PATH`, `PHP_PATH` : chemins executables
-- `AUDIO_FORMATS`, `VIDEO_FORMATS` : formats autorises
-- `YOUTUBE_URL_PATTERN` : regex de validation URL
-- `getDownloadsDir()`, `getDataDir()` : chemins calcules
-- `sanitizeDownloadParams()` : validation et nettoyage des parametres
-- `isValidYoutubeUrl()`, `isValidJobId()` : validations
+### Application web (localhost/youtube/)
+- **Telechargement** : MP3/FLAC/WAV/AAC/OGG/MP4/MKV/WEBM avec choix qualite
+- **Retry automatique** : relance silencieusement jusqu'a 2 fois
+- **Recherche YouTube** : onglet dedie, 10 resultats max
+- **File d'attente** : telechargements sequentiels, statut temps reel
+- **Playlists** : detection auto des URLs playlist, import dans la queue
+- **Bibliotheque** : dossiers virtuels, drag & drop avec animation, selection multiple
+- **Gros boutons** : Tout selectionner (bleu), Deselectionner (gris), Lire (rouge), Supprimer (rouge fonce)
+- **Lecteur multimedia** : audio barre fixe, video overlay, modes boucle/aleatoire
+- **Profils** : preferences par utilisateur, compteur telechargements
+- **Theme sombre/clair** : sombre par defaut, clair style YouTube
+- **Historique** : vues, likes, dislikes, annee de diffusion
+- **Stats** : total, audio, video, espace disque, duree totale
+- **MAJ yt-dlp** : bouton dans la bibliotheque (yt-dlp --update + pip fallback)
+- **Notifications** : navigateur, quand telechargement termine
+- **Onglet persistant** : sauvegarde dans localStorage
+- **Modales custom** : confirmation suppression, toast (pas d'alert/confirm natif)
 
-### YouTubeDownloader.php
-Gere tout le cycle de telechargement.
-- `getVideoInfo($url)` : appelle `yt-dlp --dump-json` pour obtenir les metadonnees
-- `startDownload($url, $type, $format, $quality, $cover)` : cree un job ID, lance `worker.php` en arriere-plan via `start /B`
-- `buildCommand()` (statique) : construit la commande yt-dlp selon type audio/video
-- `getTitle()` (statique) : recupere juste le titre (pour renommage)
-- `sanitizeFilename()` (statique) : nettoie le titre pour Windows
-- `cleanOldFiles()` : supprime les fichiers temporaires > 1h
-
-### ProgressTracker.php
-Suit la progression en temps reel d'un job.
-- `getStatus()` : verifie dans l'ordre : .done → .mp3 → log → erreur → parse %
-- `readLogTail($bytes)` : lit seulement les derniers N octets du log (performance)
-- `parseProgress($log)` : extrait le % avec regex, detecte les etapes (download, extract, merge, embed)
-- Gere le telechargement video en 2 passes (video puis audio) avec barre ajustee
-
-### Library.php
-CRUD de la bibliotheque stockee dans `data/library.json`.
-- `list()` : retourne items + dossiers + stats, verifie que les fichiers existent
-- `addItem()` : ajoute un item avec metadonnees (titre, thumbnail, channel, etc.)
-- `moveItem()` : deplace un item vers un dossier virtuel
-- `deleteItem()` : supprime l'item ET les fichiers associes (mp3 + cover)
-- `createFolder()`, `renameFolder()`, `deleteFolder()` : gestion dossiers virtuels
-
-### Profile.php
-CRUD des profils utilisateur stockes dans `data/profiles.json`.
-- `listAll()` : liste simplifiee pour l'ecran de selection
-- `save_profile($username, $prefs)` : cree ou met a jour un profil
-- `loadByUsername()` : charge un profil par pseudo
-- `incrementDownloads()` : +1 au compteur
-- `logout()` : supprime le cookie
-- Pas de mot de passe, identification par pseudo uniquement
-- Cookie de 10 ans + localStorage pour retenir le profil
-
-## worker.php - Processus de telechargement
-
-Flux d'execution :
-1. Recoit les parametres en ligne de commande ($argv)
-2. Construit la commande yt-dlp via `YouTubeDownloader::buildCommand()`
-3. Execute avec `proc_open()` pour capturer stdout/stderr en temps reel
-4. Ecrit chaque ligne dans `{jobId}.log` (lu par ProgressTracker)
-5. Gere la couverture separee si demandee (conversion en JPG)
-6. Trouve le fichier final (gere les noms intermediaires de yt-dlp)
-7. Renomme avec le titre YouTube (`YouTubeDownloader::sanitizeFilename()`)
-8. Cree `{jobId}.done` avec les noms finaux (detecte par ProgressTracker)
+### Extension navigateur (Chrome/Brave)
+- **Bouton DL rouge** : a cote des likes + flottant en bas a droite, telecharge en 1 clic
+- **Bouton burger** : ouvre panneau d'options (type, format, qualite, couverture)
+- **Bouton cloche** : panneau de notifications (fichiers ignores, erreurs, succes)
+- **Bouton DL inline** : integre dans l'interface YouTube a cote des likes
+- **Preferences sauvegardees** : le bouton DL utilise les derniers reglages
+- **Anti-doublons** : verifie si la video est deja en bibliotheque avant telechargement
+- **Indicateur vert** : bouton vert ✓ si deja telecharge
+- **Progression** : le bouton affiche 0%...50%...100% en temps reel
+- **Detection playlist** : bandeau en haut avec compteur de videos
+- **Filtre duree** : min/max en minutes pour filtrer les videos d'une playlist
+- **Mise a jour au scroll** : detecte les nouvelles videos chargees par YouTube
+- **Telechargement playlist** : sequentiel avec double barre de progression (video + total)
+- **Log des doublons** : panneau cloche avec nom utilisateur et statut
 
 ## API Endpoints
 
 ### POST api/info.php
-Recupere les infos d'une video YouTube.
-- **Body** : `url=https://youtube.com/watch?v=xxx`
-- **Reponse** : `{success, title, thumbnail, duration, channel}`
+`{success, title, thumbnail, duration, channel, views, views_display, year, likes, dislikes}`
 
 ### POST api/download.php
-Lance un telechargement en arriere-plan.
-- **Body** : `url, type(audio|video), format(mp3|mp4|...), quality(0|best|720|...), cover(0|1)`
-- **Reponse** : `{success, jobId}`
+Body: `url, type, format, quality, cover` → `{success, jobId}`
 
 ### GET api/progress.php?id=yt_xxx
-Suit la progression d'un telechargement (appele toutes les 500ms).
-- **Reponse** : `{status(waiting|progress|done|error), percent, message, file?, cover?}`
+`{status(waiting|progress|done|error), percent, message, file?, cover?}`
 
-### POST/GET api/library.php
-- `action=list` : liste tout
-- `action=add_item` + file, title, type, format, folder, thumbnail, channel, duration, cover
-- `action=move_item` + item_id, folder_id
-- `action=delete_item` + item_id
-- `action=create_folder` + name
-- `action=rename_folder` + folder_id, name
-- `action=delete_folder` + folder_id
+### api/library.php
+`action=list|add_item|move_item|delete_item|create_folder|rename_folder|delete_folder|check_url`
 
-### POST/GET api/profile.php
-- `action=list` : liste tous les profils
-- `action=save` + username, pref_type, pref_format_audio, etc.
-- `action=load` + username
-- `action=increment` + username
-- `action=logout`
+### api/profile.php
+`action=list|save|load|increment|logout`
+
+### GET api/search.php?q=xxx&max=10
+`{success, results: [{url, title, thumbnail, duration, channel}]}`
+
+### POST api/playlist.php
+`{success, title, videos: [...]}`
+
+### api/history.php
+`action=list|add|clear` (+ title, status, format, type, url, views, year, likes, dislikes)
+
+### api/system.php
+`action=info` → version + disque | `action=update` → MAJ yt-dlp
 
 ## Frontend (assets/js/app.js)
+Sections : STATE, THEME, NOTIFICATIONS, TABS, FORMATS, DOWNLOAD (retry),
+LIBRARY, PLAYER, SEARCH, PLAYLIST DETECTION, QUEUE, HISTORY,
+SYSTEM INFO, STATS, DRAG & DROP, PROFILE, INIT
 
-### Modules dans app.js
-Le JS est organise en sections commentees :
-1. **STATE** : variables globales (currentFolder, playlist, playMode, etc.)
-2. **TABS** : navigation entre onglets (Telecharger, Bibliotheque, Profil)
-3. **FORMATS** : configuration des formats audio/video et mise a jour des selects
-4. **DOWNLOAD** : soumission du formulaire, appel info → download → pollProgress
-5. **LIBRARY** : chargement, rendu grille, CRUD dossiers/items
-6. **PLAYER** : lecteur audio/video avec playlist, modes de lecture
-7. **PROFILE** : login/logout, preferences, liste des profils
-8. **INIT** : chargement initial (cookie/localStorage → profil, bibliotheque)
-
-### Lecteur multimedia
-- Barre fixe en bas pour l'audio (play/pause, prev/next, seek, volume)
-- Overlay plein ecran pour la video
-- Modes : normal, boucle tout, boucle 1, aleatoire
-- Playlist : selection multiple puis lecture sequentielle
-- Passe automatiquement au morceau suivant a la fin
-
-### Systeme de progression
-- Polling toutes les 500ms vers api/progress.php
-- Affiche taille + vitesse en temps reel
-- Detection de blocage : si aucun changement de message pendant 2 min → erreur
-- Avertissement apres 30s sans changement
-
-### Retry automatique
-- En cas d'erreur ou de blocage, le telechargement est relance silencieusement
-- Maximum 2 retries (3 tentatives au total)
-- Si les 3 tentatives echouent → affiche l'erreur (video probablement protegee)
-- Le retry relance un nouveau job complet (nouveau jobId via download.php)
-- L'utilisateur voit "Nouvelle tentative (2/3)..." pendant le retry
-
-## Formats supportes
-
-### Audio
-| Format | Extension | Qualites |
-|--------|-----------|----------|
-| MP3    | .mp3      | 0 (best), 5 (moyen), 9 (leger) |
-| FLAC   | .flac     | idem |
-| WAV    | .wav      | idem |
-| AAC    | .aac      | idem |
-| OGG    | .ogg      | idem |
-
-### Video
-| Format | Extension | Qualites |
-|--------|-----------|----------|
-| MP4    | .mp4      | best, 1080p, 720p, 480p, 360p |
-| MKV    | .mkv      | idem |
-| WEBM   | .webm     | idem |
-
-Note : les MP4 ont l'audio converti en AAC (compatibilite lecteurs).
-Les audios ont la couverture YouTube integree en JPEG (--embed-thumbnail --convert-thumbnails jpg).
+## Extension (extension/)
+Sections : OPTIONS, NOTIFICATION LOG, BOUTONS FLOTTANTS, PANNEAU OPTIONS,
+PREFERENCES, VIDEO INFO, ANTI-DOUBLONS, QUICK DOWNLOAD, PANEL DOWNLOAD,
+PLAYLIST DETECTION (scrape + filtre duree + scroll), LIBRARY, INIT & NAVIGATION
 
 ## Demarrage automatique
-XAMPP (Apache + MySQL) demarre automatiquement au boot Windows via un raccourci
-`XAMPP AutoStart.lnk` → `C:\xampp\xampp_start.exe` dans le dossier Startup :
-`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`
-
-## Configuration MariaDB
-Fichier de config : `C:\xampp\mysql\bin\my.ini`
-- `key_buffer` renomme en `key_buffer_size` (lignes [mysqld], [isamchk], [myisamchk])
-  pour supprimer l'avertissement au demarrage de MariaDB.
+Raccourci `xampp_start.exe` dans `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`

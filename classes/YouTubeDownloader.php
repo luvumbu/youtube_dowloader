@@ -41,12 +41,28 @@ class YouTubeDownloader
             return ['success' => false, 'error' => 'Impossible de recuperer la video.'];
         }
 
+        // Formater les vues
+        $views = $data['view_count'] ?? 0;
+        if ($views >= 1000000000) $viewsDisplay = round($views / 1000000000, 1) . ' Md';
+        elseif ($views >= 1000000) $viewsDisplay = round($views / 1000000, 1) . ' M';
+        elseif ($views >= 1000) $viewsDisplay = round($views / 1000, 1) . ' k';
+        else $viewsDisplay = (string) $views;
+
+        // Annee de diffusion
+        $uploadDate = $data['upload_date'] ?? '';
+        $year = $uploadDate ? substr($uploadDate, 0, 4) : '';
+
         return [
-            'success'   => true,
-            'title'     => $data['title'],
-            'thumbnail' => $data['thumbnail'] ?? '',
-            'duration'  => $data['duration_string'] ?? '',
-            'channel'   => $data['channel'] ?? ''
+            'success'       => true,
+            'title'         => $data['title'],
+            'thumbnail'     => $data['thumbnail'] ?? '',
+            'duration'      => $data['duration_string'] ?? '',
+            'channel'       => $data['channel'] ?? '',
+            'views'         => $views,
+            'views_display' => $viewsDisplay . ' vues',
+            'year'          => $year,
+            'likes'         => $data['like_count'] ?? 0,
+            'dislikes'      => $data['dislike_count'] ?? 0
         ];
     }
 

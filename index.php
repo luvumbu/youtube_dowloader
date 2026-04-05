@@ -229,14 +229,14 @@
             <div class="folder-chip active" onclick="filterFolder('')">Tout</div>
         </div>
 
-        <div class="select-bar" id="selectBar" style="display:none;">
-            <button class="btn-select" onclick="selectAll()">Tout selectionner</button>
-            <button class="btn-select" onclick="deselectAll()">Tout deselectionner</button>
+        <div id="bigActionBtns" style="display:none;">
             <span class="select-count" id="selectCount">0 selectionne(s)</span>
-        </div>
-
-        <div id="bigPlayBtn" style="display:none; text-align:center; margin-bottom:20px;">
-            <button class="big-play" onclick="playSelected()">&#9654; Lire la selection</button>
+            <div class="big-actions-row">
+                <button class="big-select-all" onclick="selectAll()">&#9745; Tout selectionner</button>
+                <button class="big-deselect" onclick="deselectAll()">&#9744; Tout deselectionner</button>
+                <button class="big-play" onclick="playSelected()">&#9654; Lire la selection</button>
+                <button class="big-delete" onclick="deleteSelected()">&#10005; Supprimer la selection</button>
+            </div>
         </div>
 
         <div class="items-grid" id="itemsGrid"></div>
@@ -290,6 +290,24 @@
             <button class="btn-cancel" onclick="closeModal('modalFolder')">Annuler</button>
             <button onclick="createFolder()">Creer</button>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+        <h3 id="confirmTitle">Confirmation</h3>
+        <p id="confirmMessage" style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;"></p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeModal('modalConfirm')">Annuler</button>
+            <button id="confirmBtn" style="background:var(--error);">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalToast">
+    <div class="modal" style="text-align:center;padding:24px;">
+        <p id="toastMessage" style="font-size:15px;"></p>
+        <button style="margin-top:15px;width:100%;" onclick="closeModal('modalToast')">OK</button>
     </div>
 </div>
 

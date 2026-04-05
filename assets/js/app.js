@@ -35,7 +35,12 @@ function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab-content#tab-' + tab).classList.add('active');
-    event.target.classList.add('active');
+    // Trouver le bon onglet a activer dans la barre
+    document.querySelectorAll('.tab').forEach(t => {
+        const tabMap = { 'Telecharger': 'download', 'Recherche': 'search', 'Bibliotheque': 'library', 'Profil': 'profile' };
+        if (tabMap[t.textContent] === tab) t.classList.add('active');
+    });
+    localStorage.setItem('yt_tab', tab);
     if (tab === 'library') { loadLibrary(); loadHistory(); loadSystemInfo(); }
 }
 
@@ -99,6 +104,12 @@ document.getElementById('dlForm').addEventListener('submit', async function(e) {
     result.innerHTML = '';
     progressBar.style.width = '0%';
 
+    // Verifier si c'est une playlist
+    if (url.includes('list=')) {
+        const isPlaylist = await checkPlaylist(url);
+        if (isPlaylist) { btn.disabled = false; btn.textContent = 'Telecharger'; return; }
+    }
+
     progressZone.classList.add('active');
     progressText.textContent = 'Recuperation des infos...';
     progressBar.style.width = '5%';
@@ -118,7 +129,11 @@ document.getElementById('dlForm').addEventListener('submit', async function(e) {
 
         document.getElementById('thumb').src = info.thumbnail;
         document.getElementById('videoTitle').textContent = info.title;
-        document.getElementById('videoMeta').textContent = info.channel + '  |  ' + info.duration;
+        let metaText = info.channel + '  |  ' + info.duration;
+        if (info.views_display) metaText += '  |  ' + info.views_display;
+        if (info.year) metaText += '  |  ' + info.year;
+        if (info.likes) metaText += '  |  \u25B2 ' + formatLikes(info.likes);
+        document.getElementById('videoMeta').textContent = metaText;
         videoCard.classList.add('active');
 
         progressText.textContent = 'Lancement du telechargement...';
@@ -204,11 +219,13 @@ document.getElementById('dlForm').addEventListener('submit', async function(e) {
                             + '&channel=' + encodeURIComponent(info.channel)
                             + '&duration=' + encodeURIComponent(info.duration)
                             + '&cover=' + encodeURIComponent(data.cover || '')
+                            + '&url=' + encodeURIComponent(url)
                     });
 
                     notifyDone(info.title);
-                    addHistory(info.title, 'success', format, type, url);
+                    addHistory(info.title, 'success', format, type, url, info);
                     incrementDownloadCount();
+                    loadSystemInfo();
                     reset();
                 } else if (data.status === 'error') {
                     clearInterval(interval);
@@ -218,7 +235,7 @@ document.getElementById('dlForm').addEventListener('submit', async function(e) {
                     } else {
                         progressText.textContent = 'Erreur';
                         result.innerHTML = '<div class="message error">' + data.message + '</div>';
-                        addHistory(info.title, 'error', format, type, url);
+                        addHistory(info.title, 'error', format, type, url, info);
                         reset();
                     }
                 } else {
@@ -289,7 +306,7 @@ function renderLibrary() {
     empty.style.display = 'none';
 
     // Show select bar if items exist
-    document.getElementById('selectBar').style.display = filtered.length > 0 ? 'flex' : 'none';
+    // Les gros boutons apparaissent quand on coche des items
 
     grid.innerHTML = filtered.map(item => {
         const thumbHtml = item.thumbnail
@@ -313,6 +330,10 @@ function renderLibrary() {
             + '<button class="item-del" onclick="deleteItem(\'' + item.id + '\')">Suppr</button>'
             + '</div></div></div>';
     }).join('');
+
+    // Activer le drag & drop et calculer les stats
+    enableDragDrop();
+    computeDurationStats();
 }
 
 function filterFolder(folderId) {
@@ -345,25 +366,31 @@ async function createFolder() {
     loadLibrary();
 }
 
-async function deleteFolder(id) {
-    if (!confirm('Supprimer ce dossier ? Les elements retourneront a la racine.')) return;
-    await fetch('api/library.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'action=delete_folder&folder_id=' + id
+function deleteFolder(id) {
+    showConfirm('Supprimer le dossier', 'Les elements du dossier retourneront a la racine.', 'Supprimer', 'var(--error)', async () => {
+        await fetch('api/library.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'action=delete_folder&folder_id=' + id
+        });
+        if (currentFolder === id) currentFolder = '';
+        loadLibrary();
+        loadSystemInfo();
     });
-    if (currentFolder === id) currentFolder = '';
-    loadLibrary();
 }
 
-async function deleteItem(id) {
-    if (!confirm('Supprimer cet element ?')) return;
-    await fetch('api/library.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'action=delete_item&item_id=' + id
+function deleteItem(id) {
+    const item = libraryData.items.find(i => i.id === id);
+    const title = item ? item.title : 'cet element';
+    showConfirm('Supprimer', 'Supprimer "' + title + '" ? Le fichier sera supprime du disque.', 'Supprimer', 'var(--error)', async () => {
+        await fetch('api/library.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'action=delete_item&item_id=' + id
+        });
+        loadLibrary();
+        loadSystemInfo();
     });
-    loadLibrary();
 }
 
 function showMoveItem(itemId) {
@@ -387,6 +414,37 @@ async function confirmMove() {
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('active');
+}
+
+function showConfirm(title, message, btnText, btnColor, callback) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    const btn = document.getElementById('confirmBtn');
+    btn.textContent = btnText || 'Confirmer';
+    btn.style.background = btnColor || 'var(--error)';
+    btn.onclick = () => { closeModal('modalConfirm'); callback(); };
+    document.getElementById('modalConfirm').classList.add('active');
+}
+
+function showToast(message) {
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('modalToast').classList.add('active');
+}
+
+function deleteSelected() {
+    const ids = getSelectedIds();
+    if (ids.length === 0) { showToast('Selectionne au moins un element.'); return; }
+    showConfirm('Supprimer la selection', ids.length + ' element(s) seront supprimes du disque.', 'Supprimer tout', 'var(--error)', async () => {
+        for (const id of ids) {
+            await fetch('api/library.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=delete_item&item_id=' + id
+            });
+        }
+        loadLibrary();
+        loadSystemInfo();
+    });
 }
 
 // Enter key in modal
@@ -418,8 +476,9 @@ function deselectAll() {
 
 function updateSelectCount() {
     const count = document.querySelectorAll('.item-check input:checked').length;
-    document.getElementById('selectCount').textContent = count + ' selectionne(s)';
-    document.getElementById('bigPlayBtn').style.display = count > 0 ? 'block' : 'none';
+    const total = document.querySelectorAll('.item-check input').length;
+    document.getElementById('selectCount').textContent = count + ' / ' + total + ' selectionne(s)';
+    document.getElementById('bigActionBtns').style.display = total > 0 ? 'block' : 'none';
 }
 
 function getSelectedIds() {
@@ -435,7 +494,7 @@ function playSingle(itemId) {
 
 function playSelected() {
     const ids = getSelectedIds();
-    if (ids.length === 0) { alert('Selectionne au moins un element.'); return; }
+    if (ids.length === 0) { showToast('Selectionne au moins un element.'); return; }
     playlist = ids;
     playIndex = 0;
     if (playMode === 'shuffle') shufflePlaylist();
@@ -760,7 +819,7 @@ async function savePrefs() {
     if (data.success) {
         currentUser = data.profile;
         applyPrefs();
-        alert('Preferences sauvegardees !');
+        showToast('Preferences sauvegardees !');
     }
 }
 
@@ -829,14 +888,72 @@ async function searchYouTube() {
 function useSearchResult(url) {
     document.getElementById('url').value = url;
     switchTab('download');
-    document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', t.textContent === 'Telecharger');
-    });
 }
 
 document.getElementById('searchInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); searchYouTube(); }
 });
+
+// ========== PLAYLIST DETECTION ==========
+async function checkPlaylist(url) {
+    if (!url.includes('list=')) return false;
+
+    const result = document.getElementById('result');
+    const progressZone = document.getElementById('progressZone');
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
+
+    progressZone.classList.add('active');
+    progressText.textContent = 'Detection de la playlist...';
+    progressBar.style.width = '5%';
+
+    try {
+        const resp = await fetch('api/playlist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'url=' + encodeURIComponent(url)
+        });
+        const data = await resp.json();
+
+        if (data.success && data.videos.length > 1) {
+            progressZone.classList.remove('active');
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const format = formatSelect.value;
+            const quality = qualitySelect.value;
+            const saveCover = document.getElementById('saveCover').checked ? '1' : '0';
+            const folder = document.getElementById('targetFolder').value;
+
+            result.innerHTML = '<div class="message success">'
+                + 'Playlist detectee : ' + data.videos.length + ' videos'
+                + '<br><button class="dl-btn" style="margin-top:10px;cursor:pointer;border:none;" onclick="addPlaylistToQueue()">Ajouter tout a la file d\'attente</button>'
+                + '</div>';
+
+            // Stocker les videos pour addPlaylistToQueue
+            window._playlistVideos = data.videos;
+            window._playlistParams = { type, format, quality, saveCover, folder };
+            return true;
+        }
+    } catch (err) {}
+
+    progressZone.classList.remove('active');
+    return false;
+}
+
+function addPlaylistToQueue() {
+    if (!window._playlistVideos) return;
+    const p = window._playlistParams;
+    window._playlistVideos.forEach(v => {
+        downloadQueue.push({
+            url: v.url, type: p.type, format: p.format, quality: p.quality,
+            saveCover: p.saveCover, folder: p.folder, status: 'waiting',
+            title: v.title, info: { success: true, title: v.title, thumbnail: v.thumbnail, channel: v.channel, duration: v.duration }
+        });
+    });
+    renderQueue();
+    document.getElementById('result').innerHTML = '<div class="message success">Playlist ajoutee ! ' + window._playlistVideos.length + ' videos en file d\'attente.</div>';
+    window._playlistVideos = null;
+    if (!queueProcessing) processQueue();
+}
 
 // ========== DOWNLOAD QUEUE ==========
 let downloadQueue = [];
@@ -936,7 +1053,7 @@ async function processQueue() {
             });
         } catch (err) {
             item.status = 'error';
-            addHistory(item.title, 'error', item.format, item.type, item.url);
+            addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
             renderQueue();
         }
     }
@@ -962,7 +1079,7 @@ function queueDownload(item, resolve) {
                     clearInterval(interval);
                     item.status = 'done';
                     notifyDone(item.title);
-                    addHistory(item.title, 'success', item.format, item.type, item.url);
+                    addHistory(item.title, 'success', item.format, item.type, item.url, item.info);
                     // Ajouter a la bibliotheque
                     await fetch('api/library.php', {
                         method: 'POST',
@@ -975,14 +1092,16 @@ function queueDownload(item, resolve) {
                             + '&channel=' + encodeURIComponent(item.info.channel)
                             + '&duration=' + encodeURIComponent(item.info.duration)
                             + '&cover=' + encodeURIComponent(data.cover || '')
+                            + '&url=' + encodeURIComponent(item.url)
                     });
                     incrementDownloadCount();
+                    loadSystemInfo();
                     renderQueue();
                     resolve();
                 } else if (data.status === 'error') {
                     clearInterval(interval);
                     item.status = 'error';
-                    addHistory(item.title, 'error', item.format, item.type, item.url);
+                    addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
                     renderQueue();
                     resolve();
                 }
@@ -992,13 +1111,26 @@ function queueDownload(item, resolve) {
 }
 
 // ========== HISTORY ==========
-async function addHistory(title, status, format, type, url) {
+async function addHistory(title, status, format, type, url, info) {
+    const extra = info || {};
     await fetch('api/history.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'action=add&title=' + encodeURIComponent(title) + '&status=' + status
             + '&format=' + format + '&type=' + type + '&url=' + encodeURIComponent(url || '')
+            + '&channel=' + encodeURIComponent(extra.channel || '')
+            + '&views=' + encodeURIComponent(extra.views_display || '')
+            + '&year=' + encodeURIComponent(extra.year || '')
+            + '&likes=' + encodeURIComponent(extra.likes || '0')
+            + '&dislikes=' + encodeURIComponent(extra.dislikes || '0')
     }).catch(() => {});
+}
+
+function formatLikes(n) {
+    n = parseInt(n) || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return '' + n;
 }
 
 async function loadHistory() {
@@ -1016,9 +1148,21 @@ async function loadHistory() {
         container.innerHTML = data.history.slice(0, 50).map(h => {
             const icon = h.status === 'success' ? '&#10003;' : '&#10007;';
             const cls = h.status === 'success' ? 'success' : 'error';
+            const views = h.views ? h.views : '';
+            const year = h.year ? h.year : '';
+            const likes = h.likes ? formatLikes(h.likes) : '';
+            const dislikes = h.dislikes ? formatLikes(h.dislikes) : '';
+            let meta = '';
+            if (views) meta += views;
+            if (year) meta += (meta ? ' · ' : '') + year;
+            if (likes) meta += (meta ? ' · ' : '') + '&#9650; ' + likes;
+            if (dislikes && parseInt(h.dislikes) > 0) meta += ' · &#9660; ' + dislikes;
             return '<div class="history-item">'
                 + '<span class="hi-icon ' + cls + '">' + icon + '</span>'
+                + '<div class="hi-body">'
                 + '<span class="hi-title">' + h.title + '</span>'
+                + (meta ? '<span class="hi-stats">' + meta + '</span>' : '')
+                + '</div>'
                 + '<span class="hi-format">' + (h.format || '').toUpperCase() + '</span>'
                 + '<span class="hi-date">' + (h.date || '').split(' ')[0] + '</span>'
                 + '</div>';
@@ -1111,12 +1255,27 @@ function enableDragDrop() {
             chip.classList.remove('drag-over');
             if (dragItemId) {
                 const folderId = chip.dataset.folderId;
+                const draggedCard = document.querySelector('.item-card[data-id="' + dragItemId + '"]');
+
+                // Animation : la carte retrecit et disparait
+                if (draggedCard) {
+                    draggedCard.classList.add('drop-fly');
+                }
+
+                // Animation : le dossier pulse pour confirmer
+                chip.classList.add('drop-success');
+
                 await fetch('api/library.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'action=move_item&item_id=' + dragItemId + '&folder_id=' + encodeURIComponent(folderId)
                 });
-                loadLibrary();
+
+                // Attendre la fin de l'animation avant de recharger
+                setTimeout(() => {
+                    chip.classList.remove('drop-success');
+                    loadLibrary();
+                }, 500);
             }
         });
     });
@@ -1135,3 +1294,10 @@ if (savedUser) {
 
 // Load folders for download tab on start
 loadLibrary();
+loadSystemInfo();
+
+// Restaurer l'onglet actif
+const savedTab = localStorage.getItem('yt_tab');
+if (savedTab && savedTab !== 'download') {
+    switchTab(savedTab);
+}

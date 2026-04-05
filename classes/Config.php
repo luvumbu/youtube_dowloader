@@ -15,6 +15,9 @@ class Config
     /** Chemin vers le dossier bin de ffmpeg */
     const FFMPEG_PATH = 'C:\\Users\\maste\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1-full_build\\bin';
 
+    /** Chemin vers l'executable Python (pour pip) */
+    const PYTHON_PATH = 'C:\\Users\\maste\\AppData\\Local\\Python\\bin\\python.exe';
+
     /** Chemin vers l'executable PHP de XAMPP */
     const PHP_PATH = 'C:\\xampp\\php\\php.exe';
 
@@ -48,7 +51,7 @@ class Config
     // === Regex de validation ===
 
     /** Pattern pour valider une URL YouTube */
-    const YOUTUBE_URL_PATTERN = '/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)[\w\-]+/';
+    const YOUTUBE_URL_PATTERN = '/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/playlist\?list=)[\w\-]+/';
 
     /** Pattern pour valider un job ID */
     const JOB_ID_PATTERN = '/^yt_[a-f0-9]+$/';

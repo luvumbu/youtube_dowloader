@@ -12,6 +12,9 @@
  *   delete_folder - Supprimer un dossier (items -> racine)
  */
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/../classes/Library.php';
 
@@ -45,6 +48,26 @@ switch ($action) {
 
     case 'delete_folder':
         echo json_encode($lib->deleteFolder($_POST['folder_id'] ?? ''));
+        break;
+
+    case 'check_url':
+        $url = $_GET['url'] ?? '';
+        $found = false;
+        if (!empty($url)) {
+            // Extraire l'ID video de l'URL
+            preg_match('/[?&]v=([^&]+)/', $url, $m);
+            $videoId = $m[1] ?? '';
+            $data = $lib->list();
+            foreach ($data['items'] as $item) {
+                if (!empty($item['url']) && !empty($videoId)) {
+                    if (strpos($item['url'], $videoId) !== false) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        echo json_encode(['success' => true, 'exists' => $found]);
         break;
 
     default:
