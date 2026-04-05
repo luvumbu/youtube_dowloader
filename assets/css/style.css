@@ -146,6 +146,36 @@ input[type="text"]:focus, input[type="search"]:focus { border-color: var(--accen
 .type-toggle input[type="radio"] { display: none; }
 .type-toggle input[type="radio"]:checked + label { background: var(--accent); color: #fff; }
 
+/* Options burger toggle */
+.dl-options-header {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.dl-options-header:hover { border-color: var(--accent); }
+
+.dl-options-burger { font-size: 20px; color: var(--text-secondary); line-height: 1; }
+.dl-options-summary { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.dl-options-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.3s; }
+.dl-options-arrow.open { transform: rotate(180deg); }
+
+.dl-options-panel {
+    display: none !important;
+    flex-direction: column;
+    gap: 15px;
+}
+.dl-options-panel.open {
+    display: flex !important;
+}
+
 .options-row { display: flex; gap: 10px; }
 
 select {
@@ -724,6 +754,30 @@ body.player-open { padding-bottom: 80px; }
 [data-theme="light"] .progress-bar-bg { background: #e5e5e5; }
 
 [data-theme="light"] .video-card { background: #fff; border-color: #e5e5e5; }
+
+/* ========== LIBRARY SEARCH ========== */
+.lib-search {
+    margin-bottom: 16px;
+}
+.lib-search input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%23888'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+.lib-search input:focus { border-color: var(--accent); }
+.lib-search input::placeholder { color: var(--text-muted); }
+
+.item-card.search-hidden { display: none; }
+.item-card.search-highlight { border-color: var(--accent); }
 
 /* ========== STATS ========== */
 .stats-grid {

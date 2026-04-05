@@ -75,8 +75,26 @@ function updateOptions() {
     qualitySelect.innerHTML = config.qualities.map(q => '<option value="'+q.value+'">'+q.label+'</option>').join('');
 }
 
-document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', updateOptions));
+document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', () => { updateOptions(); updateDlSummary(); }));
+formatSelect.addEventListener('change', updateDlSummary);
+qualitySelect.addEventListener('change', updateDlSummary);
 updateOptions();
+
+function toggleDlOptions() {
+    const panel = document.getElementById('dlOptionsPanel');
+    const arrow = document.getElementById('dlArrow');
+    panel.classList.toggle('open');
+    arrow.classList.toggle('open');
+}
+
+function updateDlSummary() {
+    const type = document.querySelector('input[name="type"]:checked').value;
+    const format = formatSelect.options[formatSelect.selectedIndex]?.text || '';
+    const quality = qualitySelect.options[qualitySelect.selectedIndex]?.text || '';
+    const summary = document.getElementById('dlSummary');
+    if (summary) summary.textContent = format + ' — ' + quality + (type === 'video' ? ' (video)' : '');
+}
+setTimeout(updateDlSummary, 100);
 
 // ========== DOWNLOAD ==========
 document.getElementById('dlForm').addEventListener('submit', async function(e) {
@@ -336,6 +354,33 @@ function renderLibrary() {
     computeDurationStats();
 }
 
+function filterLibrary() {
+    const query = document.getElementById('libSearch').value.trim().toLowerCase();
+    document.querySelectorAll('.item-card').forEach(card => {
+        const id = card.dataset.id;
+        const item = libraryData.items.find(i => i.id === id);
+        if (!item) return;
+        const text = (item.title + ' ' + (item.channel || '') + ' ' + (item.format || '')).toLowerCase();
+        const match = !query || text.includes(query);
+        card.classList.toggle('search-hidden', !match);
+        card.classList.toggle('search-highlight', match && query.length > 0);
+    });
+
+    // Mettre a jour le compteur
+    const visible = document.querySelectorAll('.item-card:not(.search-hidden)').length;
+    const total = document.querySelectorAll('.item-card').length;
+    const empty = document.getElementById('emptyLib');
+    if (query && visible === 0) {
+        empty.style.display = 'block';
+        empty.textContent = 'Aucun resultat pour "' + query + '"';
+    } else if (visible === 0 && total === 0) {
+        empty.style.display = 'block';
+        empty.textContent = 'Aucun telechargement pour le moment.';
+    } else {
+        empty.style.display = 'none';
+    }
+}
+
 function filterFolder(folderId) {
     currentFolder = folderId;
     renderLibrary();
@@ -478,7 +523,13 @@ function updateSelectCount() {
     const count = document.querySelectorAll('.item-check input:checked').length;
     const total = document.querySelectorAll('.item-check input').length;
     document.getElementById('selectCount').textContent = count + ' / ' + total + ' selectionne(s)';
+    // Toujours afficher le bloc si il y a des items
     document.getElementById('bigActionBtns').style.display = total > 0 ? 'block' : 'none';
+    // Afficher deselect/lire/supprimer seulement si selection > 0
+    const hasSelection = count > 0;
+    document.getElementById('btnDeselect').style.display = hasSelection ? '' : 'none';
+    document.getElementById('btnPlaySel').style.display = hasSelection ? '' : 'none';
+    document.getElementById('btnDeleteSel').style.display = hasSelection ? '' : 'none';
 }
 
 function getSelectedIds() {

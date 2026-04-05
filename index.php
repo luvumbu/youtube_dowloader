@@ -34,27 +34,35 @@
             <form id="dlForm">
                 <input type="text" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
 
-                <div class="type-toggle">
-                    <input type="radio" name="type" id="typeAudio" value="audio" checked>
-                    <label for="typeAudio">Audio</label>
-                    <input type="radio" name="type" id="typeVideo" value="video">
-                    <label for="typeVideo">Video</label>
+                <div class="dl-options-header" onclick="toggleDlOptions()">
+                    <span class="dl-options-burger" id="dlBurger">&#9776;</span>
+                    <span class="dl-options-summary" id="dlSummary">MP3 — Meilleure qualite</span>
+                    <span class="dl-options-arrow" id="dlArrow">&#9660;</span>
                 </div>
 
-                <div class="options-row">
-                    <select id="format"></select>
-                    <select id="quality"></select>
-                </div>
+                <div class="dl-options-panel" id="dlOptionsPanel">
+                    <div class="type-toggle">
+                        <input type="radio" name="type" id="typeAudio" value="audio" checked>
+                        <label for="typeAudio">Audio</label>
+                        <input type="radio" name="type" id="typeVideo" value="video">
+                        <label for="typeVideo">Video</label>
+                    </div>
 
-                <div class="options-row">
-                    <select id="targetFolder">
-                        <option value="">Aucun dossier</option>
-                    </select>
-                </div>
+                    <div class="options-row">
+                        <select id="format"></select>
+                        <select id="quality"></select>
+                    </div>
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="saveCover"> Telecharger aussi la couverture (image)
-                </label>
+                    <div class="options-row">
+                        <select id="targetFolder">
+                            <option value="">Aucun dossier</option>
+                        </select>
+                    </div>
+
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="saveCover"> Telecharger aussi la couverture (image)
+                    </label>
+                </div>
 
                 <button type="submit" id="btn">Telecharger</button>
             </form>
@@ -211,6 +219,10 @@
             <span class="ub-status" id="updateStatus"></span>
         </div>
 
+        <div class="lib-search">
+            <input type="text" id="libSearch" placeholder="Rechercher dans la bibliotheque..." oninput="filterLibrary()">
+        </div>
+
         <div class="lib-header">
             <div class="lib-actions">
                 <button class="btn-small btn-create" onclick="showCreateFolder()">+ Nouveau dossier</button>
@@ -233,9 +245,9 @@
             <span class="select-count" id="selectCount">0 selectionne(s)</span>
             <div class="big-actions-row">
                 <button class="big-select-all" onclick="selectAll()">&#9745; Tout selectionner</button>
-                <button class="big-deselect" onclick="deselectAll()">&#9744; Tout deselectionner</button>
-                <button class="big-play" onclick="playSelected()">&#9654; Lire la selection</button>
-                <button class="big-delete" onclick="deleteSelected()">&#10005; Supprimer la selection</button>
+                <button class="big-deselect" onclick="deselectAll()" style="display:none;" id="btnDeselect">&#9744; Tout deselectionner</button>
+                <button class="big-play" onclick="playSelected()" style="display:none;" id="btnPlaySel">&#9654; Lire la selection</button>
+                <button class="big-delete" onclick="deleteSelected()" style="display:none;" id="btnDeleteSel">&#10005; Supprimer la selection</button>
             </div>
         </div>
 
