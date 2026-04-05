@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pip --version)",
+      "Bash(where python3:*)",
+      "Bash(python3 -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(python3:*)",
+      "Bash(C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Python\\\\pythoncore-3.14-64\\\\Scripts\\\\yt-dlp.exe:*)",
+      "Bash(winget install:*)",
+      "Read(//c/tools/ffmpeg/bin/**)",
+      "Bash(where ffmpeg:*)",
+      "Read(//c/Users/maste/AppData/Local/Microsoft/WinGet/Links/**)",
+      "Read(//c/ProgramData/chocolatey/bin/**)",
+      "Read(//c/Users/maste/AppData/Local/**)",
+      "Bash(php:*)",
+      "Read(//c/xampp/php/**)",
+      "Bash(/c/xampp/php/php.exe -r \"echo shell_exec\\('echo OK'\\);\")",
+      "Bash(/c/xampp/php/php.exe:*)",
+      "Bash(ls /c/xampp/htdocs/youtube/downloads/*.log)",
+      "Bash(cat /c/xampp/htdocs/youtube/downloads/*.log)",
+      "Bash(C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\\\\ffprobe.exe:*)",
+      "Bash(\"C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\\\\ffprobe.exe\" -v quiet -show_streams -select_streams v -of json \"C:\\\\xampp\\\\htdocs\\\\youtube\\\\downloads\\\\yt_test2.mp3\")",
+      "Bash(curl:*)",
+      "Bash(\"C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\\\\ffprobe.exe\" -v quiet -select_streams v -show_entries stream=codec_name,width,height -show_entries stream_disposition=attached_pic -of compact \"C:\\\\xampp\\\\htdocs\\\\youtube\\\\downloads\\\\yt_69d2001c64eed.mp3\")",
+      "Bash(\"C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\\\\ffprobe.exe\" -v quiet -select_streams a -show_entries stream=codec_name,bit_rate,sample_rate,duration -of compact \"C:\\\\xampp\\\\htdocs\\\\youtube\\\\downloads\\\\yt_69d2001c64eed.mp3\")",
+      "Bash(C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\\\\ffmpeg.exe:*)",
+      "Bash(rm -f /c/xampp/htdocs/youtube/downloads/Rick*.mp4)",
+      "Bash(\"C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Python\\\\pythoncore-3.14-64\\\\Scripts\\\\yt-dlp.exe\" --ffmpeg-location \"C:\\\\Users\\\\maste\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\ffmpeg-8.1-full_build\\\\bin\" -f \"bestvideo[height<=360]+bestaudio/best[height<=360]\" --merge-output-format mp4 --postprocessor-args \"Merger+ffmpeg_o:-c:v copy -c:a aac\" -o \"C:\\\\xampp\\\\htdocs\\\\youtube\\\\downloads\\\\test.%\\(ext\\)s\" --no-playlist \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\")",
+      "Bash(rm -f /c/xampp/htdocs/youtube/downloads/test*)",
+      "Bash(rm -f /c/xampp/htdocs/youtube/downloads/Rick*)",
+      "Bash(powershell:*)",
+      "Bash(sed:*)",
+      "Read(//c/xampp/mysql/bin/**)",
+      "Read(//c/xampp/mysql/**)",
+      "Bash('C:\\\\xampp\\\\php\\\\php.exe' -r ':*)",
+      "Bash(git init:*)",
+      "Bash(git remote:*)"
+    ]
+  }
+}
