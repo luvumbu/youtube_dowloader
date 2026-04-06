@@ -1,4 +1,4 @@
-const API = 'http://localhost/youtube/api';
+const API = 'http://localhost/youtube_downloader/api';
 
 const audioFormats = [
   { value: 'mp3', label: 'MP3' }, { value: 'flac', label: 'FLAC' },

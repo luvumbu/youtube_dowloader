@@ -24,12 +24,12 @@ Configures automatiquement par `install.bat` dans `classes/Config.php` :
 - `FFMPEG_PATH` : dossier bin de ffmpeg
 - `PYTHON_PATH` : python.exe (optionnel)
 - `PHP_PATH` : php.exe de XAMPP
-- **URL** : `http://localhost/youtube/`
+- **URL** : `http://localhost/youtube_downloader/`
 
 ## Architecture des fichiers
 
 ```
-youtube/
+youtube_downloader/
 ├── install.bat                # Installation automatique tout-en-un
 ├── index.php                  # Page HTML principale
 ├── worker.php                 # Processus arriere-plan de telechargement
@@ -84,7 +84,7 @@ youtube/
 
 ## Fonctionnalites
 
-### Application web (localhost/youtube/)
+### Application web (localhost/youtube_downloader/)
 - **Telechargement** : MP3/FLAC/WAV/AAC/OGG/MP4/MKV/WEBM avec choix qualite
 - **Retry automatique** : relance silencieusement jusqu'a 2 fois
 - **Recherche YouTube** : onglet dedie, 10 resultats max
@@ -116,6 +116,18 @@ youtube/
 - **Mise a jour au scroll** : detecte les nouvelles videos chargees par YouTube
 - **Telechargement playlist** : sequentiel avec double barre de progression (video + total)
 - **Log des doublons** : panneau cloche avec nom utilisateur et statut
+- **File d'attente dediee** : panneau bleu avec progression, boutons passer/relancer/reordonner
+- **Persistance queue** : sauvegardee dans chrome.storage, reprise apres changement de page
+
+### Mise a jour de l'extension
+Apres modification des fichiers dans `extension/`, il faut recharger l'extension :
+1. Ouvrir `chrome://extensions`
+2. Trouver "YouTube Downloader"
+3. Cliquer le bouton **refresh** (fleche circulaire)
+4. Rafraichir la page YouTube ouverte
+
+**Note :** Les telechargements en cours ne sont pas interrompus par le rechargement.
+Le worker tourne sur le serveur independamment. La queue se restaure automatiquement.
 
 ## API Endpoints
 

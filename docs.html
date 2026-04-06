@@ -149,7 +149,7 @@ html { scroll-behavior: smooth; }
             <tr><td><code>program\ffmpeg.zip</code></td><td>FFmpeg</td><td>~104 Mo</td></tr>
         </table>
         <div class="card success">
-            <p>Apres installation : <a href="http://localhost/youtube/">http://localhost/youtube/</a></p>
+            <p>Apres installation : <a href="http://localhost/youtube_downloader/">http://localhost/youtube_downloader/</a></p>
         </div>
     </section>
 
@@ -162,7 +162,7 @@ html { scroll-behavior: smooth; }
 
     <section id="ffmpeg"><h2><span class="step-num">4</span> FFmpeg</h2><p class="desc">Convertit audio/video.</p><p><strong>Hors ligne :</strong> dezipper <code>program\ffmpeg.zip</code> dans <code>C:\yt-tools\ffmpeg\</code></p><p><strong>En ligne :</strong> <code>winget install Gyan.FFmpeg</code></p></section>
 
-    <section id="projet"><h2><span class="step-num">5</span> Projet</h2><p class="desc">Copier dans XAMPP.</p><p>Copier le dossier dans <code>C:\xampp\htdocs\youtube\</code>. Creer <code>downloads/</code> et <code>data/</code> si manquants.</p></section>
+    <section id="projet"><h2><span class="step-num">5</span> Projet</h2><p class="desc">Copier dans XAMPP.</p><p>Copier le dossier dans <code>C:\xampp\htdocs\youtube_downloader\</code>. Creer <code>downloads/</code> et <code>data/</code> si manquants.</p></section>
 
     <section id="config">
         <h2><span class="step-num">6</span> Configuration</h2>
@@ -175,7 +175,7 @@ const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
         <div class="card warning"><p>Doubler les antislash : <code>C:\Users</code> → <code>C:\\Users</code></p></div>
     </section>
 
-    <section id="verification"><h2><span class="step-num">7</span> Verification</h2><p class="desc">Lancer Apache → ouvrir <a href="http://localhost/youtube/">localhost/youtube/</a> → coller une URL → telecharger.</p></section>
+    <section id="verification"><h2><span class="step-num">7</span> Verification</h2><p class="desc">Lancer Apache → ouvrir <a href="http://localhost/youtube_downloader/">localhost/youtube_downloader/</a> → coller une URL → telecharger.</p></section>
 
     <section id="autostart"><h2><span class="step-num">8</span> Demarrage auto (optionnel)</h2><p class="desc">Raccourci <code>xampp_start.exe</code> dans le dossier Startup (<code>Win+R</code> → <code>shell:startup</code>).</p></section>
 
@@ -190,21 +190,40 @@ const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
             <li>Selectionner le dossier <code>extension/</code> du projet</li>
         </ol>
         <div class="card success"><p>L'icone rouge apparait dans la barre du navigateur. Aller sur YouTube pour tester.</p></div>
+        <h3>Mise a jour de l'extension</h3>
+        <p>Apres modification des fichiers dans <code>extension/</code>, il faut recharger :</p>
+        <ol class="steps">
+            <li>Ouvrir <code>chrome://extensions</code></li>
+            <li>Cliquer le bouton <strong>refresh</strong> (fleche circulaire) sur l'extension</li>
+            <li>Rafraichir la page YouTube ouverte</li>
+        </ol>
+        <div class="card warning"><p>Les telechargements en cours ne sont pas interrompus. Le worker tourne sur le serveur. La file d'attente se restaure automatiquement.</p></div>
     </section>
 
     <section id="ext-usage">
         <h2><span class="step-num">&#9654;</span> Extension — Utilisation</h2>
-        <p class="desc">3 boutons flottants en bas a droite sur chaque video YouTube.</p>
+        <p class="desc">4 boutons flottants en bas a droite sur chaque video YouTube.</p>
         <table>
             <tr><th>Bouton</th><th>Action</th></tr>
-            <tr><td><strong>DL rouge</strong></td><td>Telecharge en 1 clic avec tes preferences sauvegardees. Affiche 0%→100% puis vert ✓</td></tr>
+            <tr><td><strong>DL rouge</strong></td><td>Ajoute a la file d'attente avec tes preferences. Affiche 0%→100% puis vert ✓</td></tr>
             <tr><td><strong>Burger gris</strong></td><td>Ouvre le panneau d'options : audio/video, format, qualite, couverture</td></tr>
+            <tr><td><strong>Queue bleu</strong></td><td>Ouvre la file d'attente : progression, boutons passer/relancer/reordonner</td></tr>
             <tr><td><strong>Cloche grise</strong></td><td>Panneau de notifications : fichiers ignores (doublons), erreurs, succes</td></tr>
         </table>
         <h3>Bouton DL inline</h3>
         <p>Un bouton rouge <strong>DL</strong> apparait aussi a cote des boutons Like/Dislike sur YouTube.</p>
         <h3>Anti-doublons</h3>
         <p>Si la video est deja dans la bibliotheque, le bouton est <strong>vert ✓</strong>. En cliquant, le panneau s'ouvre avec le message "deja dans ta bibliotheque" — tu peux forcer le re-telechargement via le panneau.</p>
+        <h3>File d'attente</h3>
+        <p>Tous les telechargements passent par la file d'attente (bouton bleu). Tu peux :</p>
+        <ul>
+            <li><strong>Passer</strong> un telechargement bloque (bouton &#9654;&#9654;)</li>
+            <li><strong>Relancer</strong> un telechargement en erreur (bouton &#8635;)</li>
+            <li><strong>Reordonner</strong> les elements en attente (fleches &#9650;&#9660;)</li>
+            <li><strong>Supprimer</strong> un element (&times;)</li>
+            <li><strong>Vider les termines</strong> sans toucher aux telechargements en cours</li>
+        </ul>
+        <p>La file d'attente est sauvegardee et se restaure automatiquement en changeant de page.</p>
         <h3>Preferences</h3>
         <p>Les reglages (format, qualite) sont sauvegardes automatiquement. Le bouton DL utilise toujours les derniers reglages.</p>
     </section>
