@@ -31,7 +31,7 @@ class YouTubeDownloader
             return ['success' => false, 'error' => 'URL YouTube invalide.'];
         }
 
-        $cmd = '"' . Config::YTDLP_PATH . '" --dump-json --no-playlist --no-warnings '
+        $cmd = Config::YTDLP_CMD . ' --dump-json --no-playlist --no-warnings '
             . escapeshellarg($url) . ' 2>&1';
 
         $output = shell_exec($cmd);
@@ -137,7 +137,7 @@ class YouTubeDownloader
      */
     public static function getTitle(string $url): string
     {
-        $cmd = '"' . Config::YTDLP_PATH . '" --get-title --no-playlist --no-warnings '
+        $cmd = Config::YTDLP_CMD . ' --get-title --no-playlist --no-warnings '
             . escapeshellarg($url) . ' 2>&1';
         return trim(shell_exec($cmd) ?? '');
     }
@@ -166,7 +166,7 @@ class YouTubeDownloader
      */
     public static function buildCommand(string $outputTemplate, string $type, string $format, string $quality): string
     {
-        $cmd = '"' . Config::YTDLP_PATH . '"'
+        $cmd = Config::YTDLP_CMD
             . ' --ffmpeg-location "' . Config::FFMPEG_PATH . '"'
             . ' --newline --progress-delta 1'
             . ' -o "' . $outputTemplate . '"'
@@ -191,7 +191,7 @@ class YouTubeDownloader
                 $cmd .= ' --postprocessor-args "Merger+ffmpeg_o:-c:v copy -c:a aac"';
             }
 
-            $cmd .= ' --embed-thumbnail';
+            $cmd .= ' --embed-thumbnail --convert-thumbnails jpg';
         }
 
         return $cmd;

@@ -221,6 +221,7 @@
 
         <div class="lib-search">
             <input type="text" id="libSearch" placeholder="Rechercher dans la bibliotheque..." oninput="filterLibrary()">
+            <div class="lib-filter-chips" id="libFilterChips"></div>
         </div>
 
         <div class="lib-header">

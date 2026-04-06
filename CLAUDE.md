@@ -20,7 +20,7 @@ Tout est hors ligne dans le dossier `program/`.
 
 ## Chemins systeme
 Configures automatiquement par `install.bat` dans `classes/Config.php` :
-- `YTDLP_PATH` : yt-dlp.exe
+- `YTDLP_CMD` : python.exe -m yt_dlp (via Python pour eviter blocage Smart App Control)
 - `FFMPEG_PATH` : dossier bin de ffmpeg
 - `PYTHON_PATH` : python.exe (optionnel)
 - `PHP_PATH` : php.exe de XAMPP

@@ -1,5 +1,35 @@
 const API = 'http://localhost/youtube/api';
 
+// Notifications navigateur
+if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+function notify(title) {
+  chrome.storage.local.get(['notifications'], (data) => {
+    if (data.notifications === false) return;
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Telechargement termine', { body: title, icon: 'https://www.youtube.com/favicon.ico' });
+    }
+  });
+}
+
+function toggleNotif() {
+  chrome.storage.local.get(['notifications'], (data) => {
+    const on = data.notifications === false; // inverse
+    chrome.storage.local.set({ notifications: on });
+    updateNotifBtn();
+  });
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById('ytdl-btn-notif');
+  if (!btn) return;
+  chrome.storage.local.get(['notifications'], (data) => {
+    const on = data.notifications !== false;
+    btn.textContent = on ? '\u{1F514}' : '\u{1F515}';
+    btn.classList.toggle('off', !on);
+    btn.title = on ? 'Notifications activees (clic pour desactiver)' : 'Notifications desactivees (clic pour activer)';
+  });
+}
+
 const DL_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>';
 const CHECK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z"/></svg>';
 const MENU_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>';
@@ -29,11 +59,14 @@ function createButtons() {
   bar.innerHTML = `
     <button id="ytdl-btn-dl" class="ytdl-fab ytdl-fab-dl" title="Telecharger">${DL_ICON}</button>
     <button id="ytdl-btn-menu" class="ytdl-fab ytdl-fab-menu" title="Options">${MENU_ICON}</button>
+    <button id="ytdl-btn-notif" class="ytdl-fab ytdl-fab-notif" title="Notifications activees">&#128276;</button>
   `;
   document.body.appendChild(bar);
 
   document.getElementById('ytdl-btn-dl').addEventListener('click', quickDownload);
   document.getElementById('ytdl-btn-menu').addEventListener('click', togglePanel);
+  document.getElementById('ytdl-btn-notif').addEventListener('click', toggleNotif);
+  updateNotifBtn();
 
   // Bouton DL inline a cote des likes
   injectInlineBtn();
@@ -158,7 +191,7 @@ function updatePanelOptions() {
 }
 
 function loadSavedPrefs() {
-  chrome.storage.local.get(['type', 'format', 'quality', 'cover'], (data) => {
+  chrome.storage.local.get(['type', 'format', 'quality', 'cover', 'notifications'], (data) => {
     if (data.type === 'video') {
       const el = document.getElementById('ytdlVideo');
       if (el) el.checked = true;
@@ -168,6 +201,8 @@ function loadSavedPrefs() {
     if (data.quality) { const el = document.getElementById('ytdlQuality'); if (el) el.value = data.quality; }
     if (data.cover) { const el = document.getElementById('ytdlCover'); if (el) el.checked = true; }
     updatePrefsLabel();
+    // Mettre a jour le bouton notif
+    updateNotifBtn();
   });
 }
 
@@ -317,7 +352,10 @@ async function quickDownload() {
           btn.disabled = false;
           btn.title = 'Deja telecharge (clic pour re-telecharger)';
           markAsDownloaded();
-          if (cachedInfo && cachedInfo.success) addToLibrary(data, cachedInfo, prefs.type, prefs.format, url);
+          if (cachedInfo && cachedInfo.success) {
+            notify(cachedInfo.title);
+            addToLibrary(data, cachedInfo, prefs.type, prefs.format, url);
+          }
         } else if (data.status === 'error') {
           clearInterval(poll);
           btn.innerHTML = '!';
@@ -409,6 +447,7 @@ async function panelDownload(mode) {
           progressBar.style.width = '100%';
           progressText.textContent = 'Termine !';
           await addToLibrary(data, cachedInfo, type, format, url);
+          notify(cachedInfo.title);
           status.textContent = '✓ ' + cachedInfo.title;
           status.className = 'ytdl-status ok';
 
@@ -632,53 +671,65 @@ function createPlaylistBanner() {
   const banner = document.createElement('div');
   banner.id = 'ytdl-playlist-banner';
   banner.innerHTML = `
-    <div class="ytdl-pb-top">
+    <div class="ytdl-pb-top" id="ytdlPbToggle">
       <div class="ytdl-pb-left">
         <span class="ytdl-pb-icon">${DL_ICON}</span>
         <span class="ytdl-pb-text"><strong id="ytdlPbCount">${allVideos.length}</strong> videos detectees</span>
+        <span class="ytdl-pb-arrow" id="ytdlPbArrow">&#9660;</span>
       </div>
       <div class="ytdl-pb-right">
-        <button id="ytdl-pb-btn" class="ytdl-pb-dl">Tout telecharger</button>
-        <button id="ytdl-pb-close" class="ytdl-pb-close">&times;</button>
+        <button id="ytdl-pb-btn" class="ytdl-pb-dl" onclick="event.stopPropagation()">Tout telecharger</button>
+        <button id="ytdl-pb-close" class="ytdl-pb-close" onclick="event.stopPropagation()">&times;</button>
       </div>
     </div>
-    <div class="ytdl-pb-filters">
-      <label class="ytdl-pb-filter-check">
-        <input type="checkbox" id="ytdlPbFilterOn"> Filtrer par duree
-      </label>
-      <div class="ytdl-pb-filter-range" id="ytdlPbFilterRange" style="display:none;">
-        <div class="ytdl-pb-filter-field">
-          <span>Min</span>
-          <input type="number" id="ytdlPbMin" value="0" min="0" step="1" placeholder="0"> min
-        </div>
-        <div class="ytdl-pb-filter-field">
-          <span>Max</span>
-          <input type="number" id="ytdlPbMax" value="60" min="0" step="1" placeholder="60"> min
-        </div>
-        <span class="ytdl-pb-filter-result" id="ytdlPbFilterResult"></span>
-      </div>
-    </div>
-    <div class="ytdl-pb-progress" id="ytdlPbProgress" style="display:none;">
-      <div class="ytdl-pb-bars">
-        <div class="ytdl-pb-bar-group">
-          <span class="ytdl-pb-label" id="ytdlPbCurrent">-</span>
-          <div class="ytdl-pb-bar-bg"><div class="ytdl-pb-bar-fill" id="ytdlPbBarCurrent"></div></div>
-        </div>
-        <div class="ytdl-pb-bar-group">
-          <span class="ytdl-pb-label" id="ytdlPbTotal">Total : 0 / 0</span>
-          <div class="ytdl-pb-bar-bg ytdl-pb-bar-total"><div class="ytdl-pb-bar-fill" id="ytdlPbBarTotal"></div></div>
+    <div class="ytdl-pb-body">
+      <div class="ytdl-pb-filters">
+        <label class="ytdl-pb-filter-check">
+          <input type="checkbox" id="ytdlPbFilterOn"> Filtrer par duree
+        </label>
+        <div class="ytdl-pb-filter-range" id="ytdlPbFilterRange" style="display:none;">
+          <div class="ytdl-pb-filter-field">
+            <span>Min</span>
+            <input type="number" id="ytdlPbMin" value="0" min="0" step="1" placeholder="0"> min
+          </div>
+          <div class="ytdl-pb-filter-field">
+            <span>Max</span>
+            <input type="number" id="ytdlPbMax" value="60" min="0" step="1" placeholder="60"> min
+          </div>
+          <span class="ytdl-pb-filter-result" id="ytdlPbFilterResult"></span>
         </div>
       </div>
-      <span class="ytdl-pb-status" id="ytdlPbStatus"></span>
+      <div class="ytdl-pb-progress" id="ytdlPbProgress" style="display:none;">
+        <div class="ytdl-pb-bars">
+          <div class="ytdl-pb-bar-group">
+            <span class="ytdl-pb-label" id="ytdlPbCurrent">-</span>
+            <div class="ytdl-pb-bar-bg"><div class="ytdl-pb-bar-fill" id="ytdlPbBarCurrent"></div></div>
+          </div>
+          <div class="ytdl-pb-bar-group">
+            <span class="ytdl-pb-label" id="ytdlPbTotal">Total : 0 / 0</span>
+            <div class="ytdl-pb-bar-bg ytdl-pb-bar-total"><div class="ytdl-pb-bar-fill" id="ytdlPbBarTotal"></div></div>
+          </div>
+        </div>
+        <span class="ytdl-pb-status" id="ytdlPbStatus"></span>
+      </div>
     </div>
   `;
   document.body.appendChild(banner);
 
-  document.getElementById('ytdl-pb-close').addEventListener('click', () => {
-    banner.remove();
-    if (playlistScrollWatcher) { clearInterval(playlistScrollWatcher); playlistScrollWatcher = null; }
+  document.getElementById('ytdlPbToggle').addEventListener('click', () => {
+    banner.classList.toggle('open');
   });
+  document.getElementById('ytdl-pb-close').addEventListener('click', () => {
+    banner.style.display = 'none';
+    const tab = document.getElementById('ytdl-pb-tab');
+    if (tab) tab.style.display = '';
+  });
+
+  // Bandeau masque par defaut, onglet visible
+  banner.style.display = 'none';
+  showPlaylistTab();
   document.getElementById('ytdl-pb-btn').addEventListener('click', () => {
+    banner.classList.add('open'); // Ouvrir pour voir la progression
     const filtered = getFilteredVideos();
     downloadPlaylist(filtered.map(v => v.url));
   });
@@ -691,19 +742,86 @@ function createPlaylistBanner() {
   document.getElementById('ytdlPbMin').addEventListener('input', updateFilterCount);
   document.getElementById('ytdlPbMax').addEventListener('input', updateFilterCount);
 
-  // Watcher scroll — mise a jour du compteur
-  playlistScrollWatcher = setInterval(() => {
-    const fresh = scrapePlaylistVideos();
-    const countEl = document.getElementById('ytdlPbCount');
-    if (countEl && fresh.length > 0) {
-      countEl.textContent = fresh.length;
+  // Charger la playlist complete via l'API (yt-dlp recupere tout)
+  loadFullPlaylist();
+}
+
+let fullPlaylistVideos = null;
+
+async function loadFullPlaylist() {
+  const url = window.location.href;
+  // Extraire l'URL playlist
+  const listMatch = url.match(/[?&]list=([^&]+)/);
+  if (!listMatch) return;
+
+  const countEl = document.getElementById('ytdlPbCount');
+  const tabEl = document.getElementById('ytdl-pb-tab');
+  if (countEl) countEl.textContent = countEl.textContent + ' (chargement...)';
+
+  try {
+    const resp = await fetch(API + '/playlist.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'url=' + encodeURIComponent('https://www.youtube.com/playlist?list=' + listMatch[1])
+    });
+    const data = await resp.json();
+
+    if (data.success && data.videos.length > 0) {
+      // Convertir au meme format que scrapePlaylistVideos
+      fullPlaylistVideos = data.videos.map(v => ({
+        url: v.url,
+        title: v.title,
+        duration: v.duration,
+        durationSec: parseDurationText(v.duration)
+      }));
+
+      if (countEl) countEl.textContent = fullPlaylistVideos.length;
+      if (tabEl) {
+        const span = tabEl.querySelector('span');
+        if (span) span.textContent = 'Playlist (' + fullPlaylistVideos.length + ')';
+      }
       updateFilterCount();
     }
-  }, 2000);
+  } catch (e) {
+    // Fallback: garder le scraping DOM
+    if (countEl) countEl.textContent = countEl.textContent.replace(' (chargement...)', '');
+  }
+}
+
+function parseDurationText(text) {
+  if (!text) return 0;
+  text = text.trim();
+  const parts = text.split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 1) return parts[0];
+  return 0;
+}
+
+function showPlaylistTab() {
+  if (document.getElementById('ytdl-pb-tab')) return;
+
+  const banner = document.getElementById('ytdl-playlist-banner');
+  if (!banner) return;
+
+  const count = document.getElementById('ytdlPbCount');
+  const nb = count ? count.textContent : '?';
+
+  const tab = document.createElement('button');
+  tab.id = 'ytdl-pb-tab';
+  tab.innerHTML = DL_ICON + ' <span>Playlist (' + nb + ')</span>';
+  tab.addEventListener('click', () => {
+    const b = document.getElementById('ytdl-playlist-banner');
+    if (b) {
+      const visible = b.style.display !== 'none';
+      b.style.display = visible ? 'none' : '';
+    }
+  });
+  document.body.appendChild(tab);
 }
 
 function getFilteredVideos() {
-  const all = scrapePlaylistVideos();
+  const all = fullPlaylistVideos || scrapePlaylistVideos();
   const filterOn = document.getElementById('ytdlPbFilterOn')?.checked;
   if (!filterOn) return all;
 
@@ -724,7 +842,7 @@ function updateFilterCount() {
   const filterOn = document.getElementById('ytdlPbFilterOn')?.checked;
   if (!filterOn) { resultEl.textContent = ''; return; }
 
-  const all = scrapePlaylistVideos();
+  const all = fullPlaylistVideos || scrapePlaylistVideos();
   const filtered = getFilteredVideos();
   resultEl.textContent = filtered.length + ' / ' + all.length + ' videos';
 
@@ -749,6 +867,8 @@ async function downloadPlaylist(urls) {
 
   btn.disabled = true;
   btn.textContent = 'En cours...';
+  btn.classList.add('progress');
+  btn.classList.remove('done');
   progressDiv.style.display = 'block';
   barTotal.style.width = '0%';
 
@@ -831,6 +951,7 @@ async function downloadPlaylist(urls) {
               if (info.success) {
                 await addToLibrary(data, info, prefs.type, prefs.format, url);
                 addLog('success', info.title, prefs.format.toUpperCase() + ' — ' + (data.file || ''));
+                notify(info.title);
               }
               resolve();
             } else if (data.status === 'error') {
@@ -852,11 +973,19 @@ async function downloadPlaylist(urls) {
     done++;
     barTotal.style.width = ((done / total) * 100) + '%';
     labelTotal.textContent = 'Total : ' + done + ' / ' + total + formatPlaylistStats(errors, skipped);
+
+    // Delai anti-blocage (3-5s) sauf pour le dernier
+    if (done < total) {
+      const delay = 3000 + Math.floor(Math.random() * 2000);
+      statusEl.textContent = 'Pause ' + Math.round(delay / 1000) + 's (anti-blocage)...';
+      await new Promise(r => setTimeout(r, delay));
+    }
   }
 
   const downloaded = total - errors - skipped;
-  btn.textContent = 'Termine !';
-  btn.style.background = '#2e7d32';
+  btn.textContent = downloaded + ' / ' + total + ' telecharges';
+  btn.classList.remove('progress');
+  btn.classList.add('done');
   labelCurrent.textContent = 'Playlist terminee';
   barCurrent.style.width = '100%';
   statusEl.textContent = downloaded + ' telecharges' + (skipped ? ', ' + skipped + ' ignores' : '') + (errors ? ', ' + errors + ' erreurs' : '');
@@ -884,6 +1013,7 @@ async function getCurrentUser() {
 // ========== INIT & NAVIGATION ==========
 function initOnVideoPage() {
   cachedInfo = null;
+  fullPlaylistVideos = null;
   createButtons();
   createPanel();
   createLogPanel();
@@ -917,7 +1047,7 @@ function initOnPlaylistPage() {
 }
 
 function removeAll() {
-  ['ytdl-bar', 'ytdl-panel', 'ytdl-inline-btn', 'ytdl-playlist-banner', 'ytdl-log-panel'].forEach(id => {
+  ['ytdl-bar', 'ytdl-panel', 'ytdl-inline-btn', 'ytdl-playlist-banner', 'ytdl-log-panel', 'ytdl-pb-tab'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
   });

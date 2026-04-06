@@ -50,10 +50,11 @@ class ProgressTracker
             return $this->handleDone();
         }
 
-        // 2. Fichier original encore present = finalisation
-        $mp3File = $this->downloadsDir . DIRECTORY_SEPARATOR . $this->jobId . '.mp3';
-        if (file_exists($mp3File)) {
-            return ['status' => 'progress', 'percent' => 98, 'message' => 'Finalisation...'];
+        // 2. Fichier final encore present (avant renommage) = finalisation
+        foreach (['mp3','flac','wav','aac','ogg','mp4','mkv','webm'] as $ext) {
+            if (file_exists($this->downloadsDir . DIRECTORY_SEPARATOR . $this->jobId . '.' . $ext)) {
+                return ['status' => 'progress', 'percent' => 98, 'message' => 'Finalisation...'];
+            }
         }
 
         // 3. Pas de log = en attente

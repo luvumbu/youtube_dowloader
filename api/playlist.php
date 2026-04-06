@@ -34,7 +34,7 @@ if (!$isPlaylist) {
     exit;
 }
 
-$cmd = '"' . Config::YTDLP_PATH . '" --flat-playlist --dump-json --no-warnings '
+$cmd = Config::YTDLP_CMD . ' --flat-playlist --dump-json --no-warnings '
     . escapeshellarg($url) . ' 2>&1';
 
 $output = shell_exec($cmd);

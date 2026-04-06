@@ -1,4 +1,6 @@
 <?php
+set_time_limit(600); // 10 minutes max
+
 /**
  * Worker - Processus de telechargement en arriere-plan
  *
@@ -170,10 +172,15 @@ if (file_exists($outputFile)) {
 
 // === Ecrire le fichier .done pour ProgressTracker ===
 $doneFile = $downloadsDir . DIRECTORY_SEPARATOR . $jobId . '.done';
-file_put_contents($doneFile, json_encode([
-    'file'  => basename($finalFile),
-    'cover' => $finalCover ? basename($finalCover) : null
-]));
+
+if (file_exists($finalFile)) {
+    file_put_contents($doneFile, json_encode([
+        'file'  => basename($finalFile),
+        'cover' => $finalCover ? basename($finalCover) : null
+    ]));
+} else {
+    file_put_contents($logFile, "\nERROR: Fichier de sortie introuvable\n", FILE_APPEND);
+}
 
 // Marquer la fin dans le log
 file_put_contents($logFile, "\nFINISHED\n", FILE_APPEND);

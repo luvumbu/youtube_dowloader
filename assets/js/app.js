@@ -290,6 +290,74 @@ async function loadLibrary() {
     libraryData = await resp.json();
     renderLibrary();
     updateFolderSelect();
+    buildFilterChips();
+}
+
+let activeFilters = new Set(['all']);
+
+function buildFilterChips() {
+    const container = document.getElementById('libFilterChips');
+    if (!container) return;
+
+    // Compter par type et format
+    const items = libraryData.items || [];
+    const audioCount = items.filter(i => i.type === 'audio').length;
+    const videoCount = items.filter(i => i.type === 'video').length;
+    const formatCounts = {};
+    items.forEach(i => {
+        if (i.format) formatCounts[i.format] = (formatCounts[i.format] || 0) + 1;
+    });
+
+    let html = '';
+    // Tout
+    html += '<label class="lib-filter-chip ' + (activeFilters.has('all') ? 'active' : '') + '">'
+        + '<input type="checkbox" ' + (activeFilters.has('all') ? 'checked' : '') + ' onchange="toggleFilter(\'all\')">'
+        + '<span class="chip-dot all"></span> Tout <span class="chip-count">(' + items.length + ')</span></label>';
+    // Audio
+    if (audioCount > 0) {
+        html += '<label class="lib-filter-chip ' + (activeFilters.has('audio') ? 'active' : '') + '">'
+            + '<input type="checkbox" ' + (activeFilters.has('audio') ? 'checked' : '') + ' onchange="toggleFilter(\'audio\')">'
+            + '<span class="chip-dot audio"></span> Audio <span class="chip-count">(' + audioCount + ')</span></label>';
+    }
+    // Video
+    if (videoCount > 0) {
+        html += '<label class="lib-filter-chip ' + (activeFilters.has('video') ? 'active' : '') + '">'
+            + '<input type="checkbox" ' + (activeFilters.has('video') ? 'checked' : '') + ' onchange="toggleFilter(\'video\')">'
+            + '<span class="chip-dot video"></span> Video <span class="chip-count">(' + videoCount + ')</span></label>';
+    }
+    // Formats
+    Object.keys(formatCounts).sort().forEach(f => {
+        html += '<label class="lib-filter-chip ' + (activeFilters.has('fmt:' + f) ? 'active' : '') + '">'
+            + '<input type="checkbox" ' + (activeFilters.has('fmt:' + f) ? 'checked' : '') + ' onchange="toggleFilter(\'fmt:' + f + '\')">'
+            + '<span class="chip-dot format"></span> ' + f.toUpperCase() + ' <span class="chip-count">(' + formatCounts[f] + ')</span></label>';
+    });
+
+    container.innerHTML = html;
+}
+
+function toggleFilter(key) {
+    if (key === 'all') {
+        // Tout selectionner = reset tous les filtres
+        activeFilters.clear();
+        activeFilters.add('all');
+    } else {
+        // Desactiver "all"
+        activeFilters.delete('all');
+
+        if (activeFilters.has(key)) {
+            activeFilters.delete(key);
+        } else {
+            activeFilters.add(key);
+        }
+
+        // Si rien de selectionne, revenir a "all"
+        if (activeFilters.size === 0) {
+            activeFilters.add('all');
+        }
+    }
+
+    buildFilterChips();
+    filterLibrary();
 }
 
 function renderLibrary() {
@@ -356,24 +424,36 @@ function renderLibrary() {
 
 function filterLibrary() {
     const query = document.getElementById('libSearch').value.trim().toLowerCase();
+    const showAll = activeFilters.has('all');
+
     document.querySelectorAll('.item-card').forEach(card => {
         const id = card.dataset.id;
         const item = libraryData.items.find(i => i.id === id);
         if (!item) return;
-        const text = (item.title + ' ' + (item.channel || '') + ' ' + (item.format || '')).toLowerCase();
-        const match = !query || text.includes(query);
+
+        const matchText = !query || (item.title + ' ' + (item.channel || '') + ' ' + (item.format || '')).toLowerCase().includes(query);
+
+        let matchFilter = showAll;
+        if (!showAll) {
+            // Verifier type (audio/video)
+            if (activeFilters.has(item.type)) matchFilter = true;
+            // Verifier format (fmt:mp3, fmt:mp4, etc.)
+            if (activeFilters.has('fmt:' + item.format)) matchFilter = true;
+        }
+
+        const match = matchText && matchFilter;
         card.classList.toggle('search-hidden', !match);
         card.classList.toggle('search-highlight', match && query.length > 0);
     });
 
-    // Mettre a jour le compteur
     const visible = document.querySelectorAll('.item-card:not(.search-hidden)').length;
     const total = document.querySelectorAll('.item-card').length;
     const empty = document.getElementById('emptyLib');
-    if (query && visible === 0) {
+    const hasFilter = query || !showAll;
+    if (hasFilter && visible === 0) {
         empty.style.display = 'block';
-        empty.textContent = 'Aucun resultat pour "' + query + '"';
-    } else if (visible === 0 && total === 0) {
+        empty.textContent = 'Aucun resultat.';
+    } else if (!hasFilter && total === 0) {
         empty.style.display = 'block';
         empty.textContent = 'Aucun telechargement pour le moment.';
     } else {
@@ -1106,6 +1186,11 @@ async function processQueue() {
             item.status = 'error';
             addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
             renderQueue();
+        }
+
+        // Delai anti-blocage (3-5s) entre chaque telechargement
+        if (downloadQueue.some(q => q.status === 'waiting')) {
+            await new Promise(r => setTimeout(r, 3000 + Math.floor(Math.random() * 2000)));
         }
     }
 

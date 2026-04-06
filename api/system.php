@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? 'info';
 switch ($action) {
     case 'info':
         // Version yt-dlp
-        $cmd = '"' . Config::YTDLP_PATH . '" --version 2>&1';
+        $cmd = Config::YTDLP_CMD . ' --version 2>&1';
         $version = trim(shell_exec($cmd) ?? 'inconnue');
 
         // Espace disque du dossier downloads
@@ -41,7 +41,7 @@ switch ($action) {
 
     case 'update':
         // Methode 1 : yt-dlp --update
-        $cmd = '"' . Config::YTDLP_PATH . '" --update 2>&1';
+        $cmd = Config::YTDLP_CMD . ' --update 2>&1';
         $output = shell_exec($cmd);
         $success = strpos($output, 'Updated') !== false
             || strpos($output, 'up to date') !== false
@@ -55,7 +55,7 @@ switch ($action) {
         }
 
         // Nouvelle version
-        $versionCmd = '"' . Config::YTDLP_PATH . '" --version 2>&1';
+        $versionCmd = Config::YTDLP_CMD . ' --version 2>&1';
         $newVersion = trim(shell_exec($versionCmd) ?? '');
 
         echo json_encode([

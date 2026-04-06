@@ -9,8 +9,8 @@ class Config
 {
     // === Chemins systeme ===
 
-    /** Chemin vers l'executable yt-dlp */
-    const YTDLP_PATH = 'C:\\Users\\maste\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\yt-dlp.exe';
+    /** Commande yt-dlp (via python -m pour eviter blocage Smart App Control) */
+    const YTDLP_CMD = '"C:\\Users\\maste\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m yt_dlp';
 
     /** Chemin vers le dossier bin de ffmpeg */
     const FFMPEG_PATH = 'C:\\Users\\maste\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.1-full_build\\bin';

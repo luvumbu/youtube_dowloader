@@ -20,7 +20,7 @@ if (empty($query)) {
     exit;
 }
 
-$cmd = '"' . Config::YTDLP_PATH . '" '
+$cmd = Config::YTDLP_CMD . ' '
     . '--flat-playlist --dump-json --no-warnings --default-search "ytsearch' . $max . '" '
     . escapeshellarg($query) . ' 2>&1';
 

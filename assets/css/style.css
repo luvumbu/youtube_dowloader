@@ -779,6 +779,28 @@ body.player-open { padding-bottom: 80px; }
 .item-card.search-hidden { display: none; }
 .item-card.search-highlight { border-color: var(--accent); }
 
+.lib-filter-chips {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+}
+.lib-filter-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    cursor: pointer; user-select: none; transition: all 0.2s;
+    border: 2px solid var(--border); background: var(--bg-card); color: var(--text-muted);
+}
+.lib-filter-chip:hover { border-color: var(--border-hover); }
+.lib-filter-chip.active { border-color: var(--accent); background: var(--accent-bg); color: var(--text); }
+.lib-filter-chip input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.lib-filter-chip .chip-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.lib-filter-chip .chip-dot.all { background: var(--accent); }
+.lib-filter-chip .chip-dot.audio { background: var(--accent); }
+.lib-filter-chip .chip-dot.video { background: var(--badge-video); }
+.lib-filter-chip .chip-dot.format { background: var(--text-muted); }
+.lib-filter-chip.active .chip-dot.video { background: var(--badge-video); }
+.lib-filter-chip .chip-count { color: var(--text-muted); font-weight: 400; }
+
 /* ========== STATS ========== */
 .stats-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
