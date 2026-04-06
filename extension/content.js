@@ -1,4 +1,4 @@
-const API = 'http://localhost/youtube_downloader/api';
+const API = 'http://localhost/youtube_dowloader/api';
 
 // Helper : verifie que le contexte extension est encore valide
 function chromeOk() {

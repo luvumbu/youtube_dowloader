@@ -17,9 +17,16 @@ set "INSTALL_DIR=C:\yt-tools"
 set "YTDLP_DEST=%INSTALL_DIR%\yt-dlp.exe"
 set "FFMPEG_DIR=%INSTALL_DIR%\ffmpeg"
 set "XAMPP_DIR=C:\xampp"
-set "HTDOCS=%XAMPP_DIR%\htdocs\youtube_downloader"
+
+:: Extraire le nom du dossier du projet (dernier segment du chemin)
+set "TEMP_PATH=%~dp0"
+set "TEMP_PATH=%TEMP_PATH:~0,-1%"
+for %%F in ("%TEMP_PATH%") do set "FOLDER_NAME=%%~nxF"
+set "HTDOCS=%XAMPP_DIR%\htdocs\%FOLDER_NAME%"
 
 echo  [INFO] Dossier du projet : %PROJECT_DIR%
+echo  [INFO] Nom du dossier    : %FOLDER_NAME%
+echo  [INFO] Destination htdocs: %HTDOCS%
 echo  [INFO] Dossier outils    : %INSTALL_DIR%
 echo.
 
@@ -372,7 +379,7 @@ if %ERRORS% EQU 0 (
     echo    PHP     : %XAMPP_DIR%\php\php.exe
     if defined PYTHON_EXE echo    Python  : !PYTHON_EXE!
     echo.
-    echo  URL : http://localhost/youtube_downloader/
+    echo  URL : http://localhost/!FOLDER_NAME!/
     echo.
 
     set /p LAUNCH="  Lancer Apache maintenant ? (O/N) : "
@@ -383,7 +390,7 @@ if %ERRORS% EQU 0 (
         timeout /t 3 >nul
         echo  [OK] Apache demarre
         echo.
-        start http://localhost/youtube_downloader/
+        start http://localhost/!FOLDER_NAME!/
     )
 ) else (
     echo  [ERREUR] %ERRORS% probleme(s) detecte(s).

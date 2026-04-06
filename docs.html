@@ -136,7 +136,7 @@ html { scroll-behavior: smooth; }
             <li>Installe <strong>Python</strong></li>
             <li>Copie <strong>yt-dlp.exe</strong> dans <code>C:\yt-tools\</code></li>
             <li>Extrait <strong>FFmpeg</strong> dans <code>C:\yt-tools\ffmpeg\</code></li>
-            <li>Copie le projet dans <code>C:\xampp\htdocs\youtube\</code></li>
+            <li>Copie le projet dans <code>C:\xampp\htdocs\&lt;nom_du_dossier&gt;\</code> (detecte automatiquement)</li>
             <li>Cree les fichiers JSON necessaires</li>
             <li>Configure automatiquement <code>Config.php</code></li>
             <li>Propose de lancer Apache et ouvre le navigateur</li>
@@ -149,7 +149,7 @@ html { scroll-behavior: smooth; }
             <tr><td><code>program\ffmpeg.zip</code></td><td>FFmpeg</td><td>~104 Mo</td></tr>
         </table>
         <div class="card success">
-            <p>Apres installation : <a href="http://localhost/youtube_downloader/">http://localhost/youtube_downloader/</a></p>
+            <p>Apres installation : <code>http://localhost/&lt;nom_du_dossier&gt;/</code> (l'URL s'affiche a la fin de l'installation)</p>
         </div>
     </section>
 
@@ -162,7 +162,7 @@ html { scroll-behavior: smooth; }
 
     <section id="ffmpeg"><h2><span class="step-num">4</span> FFmpeg</h2><p class="desc">Convertit audio/video.</p><p><strong>Hors ligne :</strong> dezipper <code>program\ffmpeg.zip</code> dans <code>C:\yt-tools\ffmpeg\</code></p><p><strong>En ligne :</strong> <code>winget install Gyan.FFmpeg</code></p></section>
 
-    <section id="projet"><h2><span class="step-num">5</span> Projet</h2><p class="desc">Copier dans XAMPP.</p><p>Copier le dossier dans <code>C:\xampp\htdocs\youtube_downloader\</code>. Creer <code>downloads/</code> et <code>data/</code> si manquants.</p></section>
+    <section id="projet"><h2><span class="step-num">5</span> Projet</h2><p class="desc">Copier dans XAMPP.</p><p>Copier le dossier dans <code>C:\xampp\htdocs\</code> (garder le nom du dossier tel quel). Creer <code>downloads/</code> et <code>data/</code> si manquants.</p></section>
 
     <section id="config">
         <h2><span class="step-num">6</span> Configuration</h2>
@@ -175,7 +175,7 @@ const PHP_PATH = 'C:\\xampp\\php\\php.exe';</code></pre>
         <div class="card warning"><p>Doubler les antislash : <code>C:\Users</code> → <code>C:\\Users</code></p></div>
     </section>
 
-    <section id="verification"><h2><span class="step-num">7</span> Verification</h2><p class="desc">Lancer Apache → ouvrir <a href="http://localhost/youtube_downloader/">localhost/youtube_downloader/</a> → coller une URL → telecharger.</p></section>
+    <section id="verification"><h2><span class="step-num">7</span> Verification</h2><p class="desc">Lancer Apache → ouvrir <code>http://localhost/&lt;nom_du_dossier&gt;/</code> (URL affichee par install.bat) → coller une URL → telecharger.</p></section>
 
     <section id="autostart"><h2><span class="step-num">8</span> Demarrage auto (optionnel)</h2><p class="desc">Raccourci <code>xampp_start.exe</code> dans le dossier Startup (<code>Win+R</code> → <code>shell:startup</code>).</p></section>
 

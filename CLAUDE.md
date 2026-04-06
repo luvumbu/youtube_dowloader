@@ -24,12 +24,12 @@ Configures automatiquement par `install.bat` dans `classes/Config.php` :
 - `FFMPEG_PATH` : dossier bin de ffmpeg
 - `PYTHON_PATH` : python.exe (optionnel)
 - `PHP_PATH` : php.exe de XAMPP
-- **URL** : `http://localhost/youtube_downloader/`
+- **URL** : `http://localhost/<nom_du_dossier>/` (detecte automatiquement par install.bat)
 
 ## Architecture des fichiers
 
 ```
-youtube_downloader/
+youtube_dowloader/
 ├── install.bat                # Installation automatique tout-en-un
 ├── index.php                  # Page HTML principale
 ├── worker.php                 # Processus arriere-plan de telechargement
@@ -84,7 +84,7 @@ youtube_downloader/
 
 ## Fonctionnalites
 
-### Application web (localhost/youtube_downloader/)
+### Application web (localhost/<nom_du_dossier>/)
 - **Telechargement** : MP3/FLAC/WAV/AAC/OGG/MP4/MKV/WEBM avec choix qualite
 - **Retry automatique** : relance silencieusement jusqu'a 2 fois
 - **Recherche YouTube** : onglet dedie, 10 resultats max

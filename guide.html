@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Downloader - Guide Debutant</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f0f; color: #e1e1e1; line-height: 1.8; }
+
+.sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: #1a1a1a; border-right: 1px solid #2a2a2a; overflow-y: auto; padding: 24px 0; z-index: 100; }
+.sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px; border-bottom: 1px solid #2a2a2a; margin-bottom: 16px; }
+.sidebar-logo .icon { width: 36px; height: 36px; background: #ff0000; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.sidebar-logo .icon::after { content: ''; border-left: 12px solid white; border-top: 7px solid transparent; border-bottom: 7px solid transparent; margin-left: 3px; }
+.sidebar-logo span { font-weight: 700; font-size: 15px; color: #fff; }
+.sidebar nav { padding: 0 12px; }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: #aaa; text-decoration: none; border-radius: 8px; font-size: 13px; transition: all 0.15s; margin-bottom: 2px; }
+.sidebar nav a:hover { background: #252525; color: #fff; }
+.sidebar nav a.active { background: #ff000018; color: #ff4444; font-weight: 600; }
+.sidebar nav a .num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #252525; border-radius: 6px; font-size: 11px; font-weight: 700; color: #888; flex-shrink: 0; }
+.sidebar nav a.active .num { background: #ff000025; color: #ff4444; }
+.nav-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; padding: 16px 16px 8px; }
+
+.main { margin-left: 280px; max-width: 900px; padding: 48px 56px 120px; }
+.hero { margin-bottom: 56px; padding-bottom: 40px; border-bottom: 1px solid #2a2a2a; }
+.hero h1 { font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.hero h1 span { color: #ff0000; }
+.hero p { font-size: 17px; color: #888; max-width: 650px; }
+.hero .subtitle { font-size: 14px; color: #666; margin-top: 8px; }
+
+section { margin-bottom: 56px; scroll-margin-top: 24px; }
+section h2 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+section h2 .step-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #ff000015; color: #ff4444; border-radius: 8px; font-size: 14px; font-weight: 800; }
+section > p.desc { color: #888; margin-bottom: 24px; font-size: 15px; }
+h3 { font-size: 17px; font-weight: 600; color: #ddd; margin: 28px 0 12px; }
+p { margin-bottom: 14px; color: #bbb; font-size: 15px; }
+ul, ol { margin: 10px 0 16px 24px; color: #bbb; font-size: 15px; }
+li { margin-bottom: 8px; }
+
+.card { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px 24px; margin: 16px 0 20px; }
+.card.warning { border-color: #ff980040; background: #ff980008; }
+.card.warning::before { content: '\26A0  Attention'; display: block; font-weight: 700; font-size: 13px; color: #ff9800; margin-bottom: 8px; }
+.card.success { border-color: #4caf5040; background: #4caf5008; }
+.card.success::before { content: '\2713  C\'est bon !'; display: block; font-weight: 700; font-size: 13px; color: #4caf50; margin-bottom: 8px; }
+.card.info { border-color: #2196f340; background: #2196f308; }
+.card.info::before { content: '\2139  Bon a savoir'; display: block; font-weight: 700; font-size: 13px; color: #2196f3; margin-bottom: 8px; }
+.card.install { border-color: #ff000040; background: #ff000008; }
+.card.install::before { content: '\25B6  A faire'; display: block; font-weight: 700; font-size: 13px; color: #ff4444; margin-bottom: 8px; }
+.card.question { border-color: #9c27b040; background: #9c27b008; }
+.card.question::before { content: '\2753  Question frequente'; display: block; font-weight: 700; font-size: 13px; color: #ce93d8; margin-bottom: 8px; }
+
+.steps { list-style: none; counter-reset: steps; margin-left: 0; }
+.steps li { counter-increment: steps; padding: 16px 16px 16px 56px; position: relative; margin-bottom: 6px; border-radius: 8px; font-size: 15px; color: #bbb; }
+.steps li::before { content: counter(steps); position: absolute; left: 14px; top: 16px; width: 28px; height: 28px; background: #252525; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #888; }
+.steps li:hover { background: #1a1a1a; }
+.steps li strong { color: #fff; }
+
+img.screenshot { max-width: 100%; border-radius: 12px; border: 1px solid #2a2a2a; margin: 16px 0; }
+
+code { background: #1e1e1e; padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; color: #ff7b72; border: 1px solid #2a2a2a; }
+
+.key { display: inline-block; background: #252525; border: 1px solid #444; border-bottom: 3px solid #333; border-radius: 5px; padding: 2px 8px; font-size: 12px; font-family: 'Consolas', monospace; color: #ddd; margin: 0 2px; }
+
+table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+th { text-align: left; padding: 10px 16px; background: #1a1a1a; color: #aaa; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2a2a2a; }
+td { padding: 10px 16px; border-bottom: 1px solid #1e1e1e; color: #bbb; }
+tr:hover td { background: #161616; }
+
+a { color: #58a6ff; text-decoration: none; } a:hover { text-decoration: underline; }
+
+.divider { border: none; border-top: 1px solid #2a2a2a; margin: 40px 0; }
+
+@media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; padding: 32px 24px 80px; } }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="icon"></div><span>Guide Debutant</span></div>
+    <nav>
+        <div class="nav-section">Pour commencer</div>
+        <a href="#cest-quoi"><span class="num">?</span> C'est quoi ?</a>
+        <a href="#ce-quil-faut"><span class="num">!</span> Ce qu'il faut</a>
+
+        <div class="nav-section">Installation</div>
+        <a href="#etape1"><span class="num">1</span> Telecharger le projet</a>
+        <a href="#etape2"><span class="num">2</span> Lancer install.bat</a>
+        <a href="#etape3"><span class="num">3</span> Demarrer le serveur</a>
+        <a href="#etape4"><span class="num">4</span> Ouvrir l'application</a>
+
+        <div class="nav-section">Utilisation</div>
+        <a href="#premier-dl"><span class="num">&#9654;</span> Premier telechargement</a>
+        <a href="#recherche"><span class="num">&#9654;</span> Rechercher une video</a>
+        <a href="#bibliotheque"><span class="num">&#9654;</span> La bibliotheque</a>
+        <a href="#lecteur"><span class="num">&#9654;</span> Le lecteur</a>
+        <a href="#profils"><span class="num">&#9654;</span> Les profils</a>
+
+        <div class="nav-section">Extension navigateur</div>
+        <a href="#ext-cest-quoi"><span class="num">?</span> C'est quoi ?</a>
+        <a href="#ext-installer"><span class="num">1</span> Installer</a>
+        <a href="#ext-utiliser"><span class="num">2</span> Utiliser</a>
+        <a href="#ext-playlist"><span class="num">3</span> Playlists</a>
+
+        <div class="nav-section">Problemes</div>
+        <a href="#problemes"><span class="num">!</span> Depannage</a>
+        <a href="#faq"><span class="num">?</span> Questions frequentes</a>
+    </nav>
+</div>
+
+<div class="main">
+
+    <!-- ========== HERO ========== -->
+    <div class="hero">
+        <h1>YouTube <span>Downloader</span></h1>
+        <p>Le guide complet pour installer et utiliser l'application, meme si c'est la premiere fois que tu fais ce genre de choses.</p>
+        <p class="subtitle">Pas besoin de connaitre la programmation. Suis les etapes une par une, avec des images et des explications claires.</p>
+    </div>
+
+    <!-- ========== C'EST QUOI ========== -->
+    <section id="cest-quoi">
+        <h2><span class="step-num">?</span> C'est quoi cette application ?</h2>
+        <p>YouTube Downloader est une <strong>application qui tourne sur ton ordinateur</strong> (pas sur internet) et qui te permet de :</p>
+        <ul>
+            <li><strong>Telecharger</strong> des musiques et videos depuis YouTube</li>
+            <li><strong>Choisir le format</strong> : MP3 pour la musique, MP4 pour la video, et plein d'autres</li>
+            <li><strong>Organiser</strong> tes fichiers dans des dossiers avec une bibliotheque</li>
+            <li><strong>Ecouter/regarder</strong> directement dans l'application avec un lecteur integre</li>
+            <li><strong>Telecharger depuis YouTube</strong> directement avec un bouton ajoute au site (extension navigateur)</li>
+        </ul>
+        <div class="card info">
+            <p>Tout se passe sur ton PC. Tes fichiers sont sauvegardes sur ton disque dur, pas dans le cloud. Personne d'autre n'y a acces.</p>
+        </div>
+    </section>
+
+    <!-- ========== CE QU'IL FAUT ========== -->
+    <section id="ce-quil-faut">
+        <h2><span class="step-num">!</span> Ce qu'il te faut avant de commencer</h2>
+        <ul>
+            <li><strong>Un PC Windows 10 ou 11</strong> (l'application ne marche pas sur Mac ou Linux pour l'instant)</li>
+            <li><strong>Le dossier du projet</strong> qu'on t'a donne (avec le fichier <code>install.bat</code> dedans)</li>
+            <li><strong>Une connexion internet</strong> pour telecharger des videos (mais l'installation elle-meme se fait sans internet)</li>
+            <li><strong>Environ 500 Mo d'espace disque</strong> pour les programmes + l'espace pour tes telechargements</li>
+        </ul>
+        <div class="card info">
+            <p><strong>Tu n'as rien a installer toi-meme.</strong> Le script d'installation s'occupe de tout. Tu as juste a double-cliquer et repondre "Oui" quand Windows te demande.</p>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ========================================= -->
+    <!--             INSTALLATION                  -->
+    <!-- ========================================= -->
+
+    <!-- ETAPE 1 -->
+    <section id="etape1">
+        <h2><span class="step-num">1</span> Telecharger le projet</h2>
+        <p class="desc">Recuperer le dossier du projet sur ton ordinateur.</p>
+
+        <p>Si on t'a donne un <strong>fichier ZIP</strong> :</p>
+        <ol class="steps">
+            <li>Fais un <strong>clic droit</strong> sur le fichier ZIP</li>
+            <li>Clique sur <strong>"Extraire tout..."</strong> (ou "Extract All...")</li>
+            <li>Choisis un emplacement facile a retrouver, par exemple le <strong>Bureau</strong> ou <strong>Documents</strong></li>
+            <li>Clique sur <strong>"Extraire"</strong></li>
+        </ol>
+
+        <p>Si on t'a donne un <strong>dossier directement</strong> (cle USB, disque dur...) :</p>
+        <ol class="steps">
+            <li>Copie le dossier sur ton Bureau ou dans Documents</li>
+        </ol>
+
+        <div class="card success">
+            <p>Tu dois avoir un dossier qui contient des fichiers dont <code>install.bat</code>, <code>index.php</code>, et un sous-dossier <code>program</code>.</p>
+        </div>
+
+        <div class="card warning">
+            <p><strong>Ne renomme pas les fichiers</strong> a l'interieur du dossier. Tu peux renommer le dossier principal si tu veux, mais pas les fichiers dedans.</p>
+        </div>
+    </section>
+
+    <!-- ETAPE 2 -->
+    <section id="etape2">
+        <h2><span class="step-num">2</span> Lancer l'installation</h2>
+        <p class="desc">Un seul double-clic et tout s'installe automatiquement.</p>
+
+        <ol class="steps">
+            <li>Ouvre le dossier du projet</li>
+            <li>Trouve le fichier <strong><code>install.bat</code></strong> (il peut s'afficher comme "install" si les extensions sont masquees)</li>
+            <li><strong>Double-clique dessus</strong></li>
+            <li>Si Windows affiche <strong>"Windows a protege votre ordinateur"</strong>, clique sur <strong>"Informations complementaires"</strong> puis <strong>"Executer quand meme"</strong> — c'est normal, c'est parce que le fichier n'est pas signe par une grande entreprise</li>
+            <li>Si Windows demande <strong>"Voulez-vous autoriser..."</strong>, clique sur <strong>"Oui"</strong></li>
+            <li>Une <strong>fenetre noire</strong> (le terminal) va s'ouvrir et afficher la progression</li>
+        </ol>
+
+        <h3>Ce qui va se passer dans la fenetre noire :</h3>
+        <p>Le script va installer 4 programmes necessaires, un par un :</p>
+        <table>
+            <tr><th>Programme</th><th>A quoi il sert</th><th>Ce que tu dois faire</th></tr>
+            <tr><td><strong>XAMPP</strong></td><td>Fait tourner l'application (c'est le "moteur")</td><td>Un installateur va s'ouvrir. Clique <strong>Suivant</strong> a chaque fois, garde les options par defaut, et clique <strong>Installer</strong>. Attends que ca finisse puis clique <strong>Terminer</strong>.</td></tr>
+            <tr><td><strong>Python</strong></td><td>Aide a telecharger les videos</td><td>Un installateur va s'ouvrir. Clique <strong>Installer</strong> et attends.</td></tr>
+            <tr><td><strong>yt-dlp</strong></td><td>Le programme qui telecharge les videos</td><td>Rien a faire, c'est automatique.</td></tr>
+            <tr><td><strong>FFmpeg</strong></td><td>Convertit les fichiers (ex: video vers musique)</td><td>Rien a faire, c'est automatique (ca prend 1-2 minutes).</td></tr>
+        </table>
+
+        <div class="card info">
+            <p><strong>Si un programme est deja installe</strong>, le script le detecte et passe a la suite. Pas de doublon.</p>
+        </div>
+
+        <h3>A la fin de l'installation :</h3>
+        <p>Le script affiche un resume avec des <strong>[OK]</strong> verts. Il te demande ensuite :</p>
+        <p><em>"Lancer Apache maintenant ? (O/N)"</em></p>
+        <ol class="steps">
+            <li>Tape la lettre <strong>O</strong> (pour Oui) sur ton clavier</li>
+            <li>Appuie sur <strong class="key">Entree</strong></li>
+            <li>Le navigateur va s'ouvrir automatiquement sur l'application</li>
+        </ol>
+
+        <div class="card success">
+            <p>Si tu vois la page de l'application dans ton navigateur, <strong>l'installation est terminee !</strong></p>
+        </div>
+    </section>
+
+    <!-- ETAPE 3 -->
+    <section id="etape3">
+        <h2><span class="step-num">3</span> Demarrer le serveur</h2>
+        <p class="desc">A faire a chaque fois que tu veux utiliser l'application (sauf si tu as active le demarrage automatique).</p>
+
+        <div class="card info">
+            <p><strong>Pourquoi un "serveur" ?</strong> L'application fonctionne comme un site web, mais uniquement sur ton PC. Le serveur (Apache) est le programme qui fait tourner ce mini-site. Sans lui, la page ne s'affiche pas.</p>
+        </div>
+
+        <h3>Methode simple : XAMPP Control Panel</h3>
+        <ol class="steps">
+            <li>Ouvre le <strong>menu Demarrer</strong> de Windows</li>
+            <li>Tape <strong>"XAMPP"</strong> et clique sur <strong>"XAMPP Control Panel"</strong></li>
+            <li>Dans la fenetre qui s'ouvre, trouve la ligne <strong>"Apache"</strong></li>
+            <li>Clique sur le bouton <strong>"Start"</strong> a cote d'Apache</li>
+            <li>Le mot "Apache" devient <strong>vert</strong> = c'est demarre</li>
+        </ol>
+
+        <h3>Methode encore plus simple : demarrage automatique</h3>
+        <p>Pour que le serveur se lance tout seul quand tu allumes ton PC :</p>
+        <ol class="steps">
+            <li>Appuie sur <strong class="key">Win</strong> + <strong class="key">R</strong> en meme temps (la touche Windows + la lettre R)</li>
+            <li>Tape <strong><code>shell:startup</code></strong> dans la boite qui apparait</li>
+            <li>Appuie sur <strong class="key">Entree</strong></li>
+            <li>Un dossier s'ouvre. C'est le dossier "Demarrage" de Windows</li>
+            <li>Copie le fichier <strong><code>C:\xampp\xampp_start.exe</code></strong> dans ce dossier (ou cree un raccourci)</li>
+        </ol>
+        <div class="card success">
+            <p>Maintenant, a chaque demarrage de Windows, Apache se lance tout seul. Tu n'auras plus besoin d'y penser.</p>
+        </div>
+    </section>
+
+    <!-- ETAPE 4 -->
+    <section id="etape4">
+        <h2><span class="step-num">4</span> Ouvrir l'application</h2>
+        <p class="desc">Acceder a l'application dans ton navigateur.</p>
+
+        <ol class="steps">
+            <li>Ouvre ton navigateur (Chrome, Brave, Edge, Firefox...)</li>
+            <li>Dans la barre d'adresse en haut, tape l'URL qui a ete affichee a la fin de l'installation (elle ressemble a <code>http://localhost/nom_du_dossier/</code>)</li>
+            <li>Appuie sur <strong class="key">Entree</strong></li>
+        </ol>
+
+        <div class="card info">
+            <p><strong>"localhost" c'est quoi ?</strong> C'est l'adresse de ton propre ordinateur. Quand tu tapes "localhost" dans ton navigateur, tu ne vas pas sur internet — tu accedes a un programme qui tourne sur ton PC. C'est 100% local et prive.</p>
+        </div>
+
+        <div class="card warning">
+            <p>Si la page affiche une erreur ou "Cette page est inaccessible", c'est que le serveur Apache n'est pas demarre. Retourne a l'<a href="#etape3">etape 3</a>.</p>
+        </div>
+
+        <div class="card success">
+            <p>Tu peux ajouter la page en favori dans ton navigateur pour y acceder rapidement.</p>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ========================================= -->
+    <!--             UTILISATION                   -->
+    <!-- ========================================= -->
+
+    <!-- PREMIER TELECHARGEMENT -->
+    <section id="premier-dl">
+        <h2><span class="step-num">&#9654;</span> Ton premier telechargement</h2>
+        <p class="desc">Telecharger une musique ou video en quelques clics.</p>
+
+        <ol class="steps">
+            <li>Va sur <strong>YouTube</strong> dans un autre onglet</li>
+            <li>Trouve la video que tu veux telecharger</li>
+            <li><strong>Copie l'adresse</strong> de la video (clic droit sur la barre d'adresse → Copier, ou <strong class="key">Ctrl</strong>+<strong class="key">C</strong>)</li>
+            <li>Reviens sur l'application YouTube Downloader</li>
+            <li><strong>Colle l'adresse</strong> dans le champ en haut (<strong class="key">Ctrl</strong>+<strong class="key">V</strong>)</li>
+            <li>Choisis le <strong>type</strong> : Audio (musique) ou Video</li>
+            <li>Choisis le <strong>format</strong> (MP3 c'est le plus courant pour la musique, MP4 pour la video)</li>
+            <li>Choisis la <strong>qualite</strong> (Haute = meilleur son/image mais fichier plus gros)</li>
+            <li>Clique sur <strong>"Telecharger"</strong></li>
+            <li>Attends que la barre de progression arrive a 100%</li>
+        </ol>
+
+        <div class="card success">
+            <p>Le fichier est telecharge dans le dossier <code>downloads</code> du projet, et il apparait automatiquement dans ta bibliotheque.</p>
+        </div>
+
+        <h3>Les formats expliques simplement</h3>
+        <table>
+            <tr><th>Format</th><th>Type</th><th>C'est quoi ?</th><th>Quand l'utiliser</th></tr>
+            <tr><td><strong>MP3</strong></td><td>Audio</td><td>Le format musique le plus courant</td><td>Pour ecouter sur telephone, PC, cle USB</td></tr>
+            <tr><td><strong>FLAC</strong></td><td>Audio</td><td>Musique haute qualite (fichier plus gros)</td><td>Si tu veux la meilleure qualite audio possible</td></tr>
+            <tr><td><strong>WAV</strong></td><td>Audio</td><td>Audio brut, sans compression</td><td>Pour l'edition audio (tres gros fichiers)</td></tr>
+            <tr><td><strong>AAC</strong></td><td>Audio</td><td>Comme MP3 mais plus moderne</td><td>Pour iPhone/iPad</td></tr>
+            <tr><td><strong>OGG</strong></td><td>Audio</td><td>Format libre</td><td>Utilisation specifique</td></tr>
+            <tr><td><strong>MP4</strong></td><td>Video</td><td>Le format video le plus courant</td><td>Pour regarder partout (telephone, PC, TV)</td></tr>
+            <tr><td><strong>MKV</strong></td><td>Video</td><td>Video haute qualite</td><td>Pour PC et lecteurs compatibles</td></tr>
+            <tr><td><strong>WEBM</strong></td><td>Video</td><td>Format web de Google</td><td>Usage specifique</td></tr>
+        </table>
+
+        <div class="card info">
+            <p><strong>En resume :</strong> pour la musique, choisis <strong>MP3</strong>. Pour la video, choisis <strong>MP4</strong>. Ca marchera partout.</p>
+        </div>
+
+        <h3>Les qualites expliquees</h3>
+        <table>
+            <tr><th>Qualite audio</th><th>Ce que ca veut dire</th></tr>
+            <tr><td><strong>Haute (0)</strong></td><td>Meilleur son possible. Fichier un peu plus gros.</td></tr>
+            <tr><td><strong>Normale (5)</strong></td><td>Bon compromis entre qualite et taille du fichier.</td></tr>
+            <tr><td><strong>Legere (9)</strong></td><td>Fichier petit mais qualite moindre. Bien pour les podcasts.</td></tr>
+        </table>
+        <table>
+            <tr><th>Qualite video</th><th>Ce que ca veut dire</th></tr>
+            <tr><td><strong>Meilleure</strong></td><td>La meilleure resolution disponible sur YouTube</td></tr>
+            <tr><td><strong>1080p</strong></td><td>Full HD — tres bonne qualite, recommande</td></tr>
+            <tr><td><strong>720p</strong></td><td>HD — bonne qualite, fichier moins gros</td></tr>
+            <tr><td><strong>480p</strong></td><td>Qualite moyenne</td></tr>
+            <tr><td><strong>360p</strong></td><td>Basse qualite, fichier tres petit</td></tr>
+        </table>
+    </section>
+
+    <!-- RECHERCHE -->
+    <section id="recherche">
+        <h2><span class="step-num">&#9654;</span> Rechercher une video</h2>
+        <p class="desc">Pas besoin d'aller sur YouTube d'abord, cherche directement dans l'application.</p>
+
+        <ol class="steps">
+            <li>Clique sur l'onglet <strong>"Recherche"</strong> en haut de l'application</li>
+            <li>Tape le nom de la chanson, de l'artiste ou de la video</li>
+            <li>Appuie sur <strong class="key">Entree</strong> ou clique sur le bouton de recherche</li>
+            <li>Les resultats s'affichent (maximum 10)</li>
+            <li>Clique sur le bouton <strong>"Telecharger"</strong> a cote du resultat qui t'interesse</li>
+        </ol>
+    </section>
+
+    <!-- BIBLIOTHEQUE -->
+    <section id="bibliotheque">
+        <h2><span class="step-num">&#9654;</span> La bibliotheque</h2>
+        <p class="desc">Tous tes fichiers telecharges, organises comme tu veux.</p>
+
+        <p>Clique sur l'onglet <strong>"Bibliotheque"</strong> pour voir tous tes telechargements.</p>
+
+        <h3>Creer des dossiers</h3>
+        <ol class="steps">
+            <li>Clique sur le bouton <strong>"Nouveau dossier"</strong></li>
+            <li>Donne un nom a ton dossier (ex: "Rap FR", "Rock", "Playlist sport"...)</li>
+            <li>Valide</li>
+        </ol>
+
+        <h3>Ranger des fichiers dans un dossier</h3>
+        <p>Tu peux <strong>glisser-deposer</strong> (drag & drop) : clique sur un fichier, garde le bouton appuye, et deplace-le sur un dossier.</p>
+        <p>Ou bien :</p>
+        <ol class="steps">
+            <li>Selectionne un ou plusieurs fichiers en cliquant dessus</li>
+            <li>Utilise les boutons en haut : <strong>"Tout selectionner"</strong> (bleu), <strong>"Deselectionner"</strong> (gris)</li>
+        </ol>
+
+        <h3>Les gros boutons</h3>
+        <table>
+            <tr><th>Bouton</th><th>Couleur</th><th>Ce qu'il fait</th></tr>
+            <tr><td><strong>Tout selectionner</strong></td><td>Bleu</td><td>Selectionne tous les fichiers visibles</td></tr>
+            <tr><td><strong>Deselectionner</strong></td><td>Gris</td><td>Deselectionne tout</td></tr>
+            <tr><td><strong>Lire</strong></td><td>Rouge</td><td>Lance la lecture des fichiers selectionnes</td></tr>
+            <tr><td><strong>Supprimer</strong></td><td>Rouge fonce</td><td>Supprime les fichiers selectionnes (demande confirmation)</td></tr>
+        </table>
+
+        <h3>Statistiques</h3>
+        <p>En haut de la bibliotheque, tu vois des statistiques : nombre total de fichiers, nombre d'audios, de videos, espace disque utilise, et duree totale.</p>
+
+        <h3>Mettre a jour yt-dlp</h3>
+        <p>Si des telechargements echouent, clique sur le bouton <strong>"Mettre a jour yt-dlp"</strong> dans la bibliotheque. Ca met a jour le programme de telechargement pour corriger les problemes.</p>
+    </section>
+
+    <!-- LECTEUR -->
+    <section id="lecteur">
+        <h2><span class="step-num">&#9654;</span> Le lecteur multimedia</h2>
+        <p class="desc">Ecoute ta musique et regarde tes videos directement dans l'application.</p>
+
+        <h3>Lecteur audio</h3>
+        <p>Quand tu lances une musique, une <strong>barre apparait en bas de l'ecran</strong> avec :</p>
+        <ul>
+            <li>Le nom de la chanson en cours</li>
+            <li>Les boutons <strong>precedent / lecture-pause / suivant</strong></li>
+            <li>Une barre de progression (clique dessus pour avancer ou reculer)</li>
+            <li>Le controle du volume</li>
+            <li>Un bouton <strong>boucle</strong> (repeter) et un bouton <strong>aleatoire</strong> (shuffle)</li>
+        </ul>
+
+        <h3>Lecteur video</h3>
+        <p>Les videos s'ouvrent dans un <strong>cadre au-dessus de la page</strong> (overlay). Tu peux le fermer en cliquant sur la croix.</p>
+
+        <div class="card info">
+            <p>Tu peux lancer une playlist entiere depuis la bibliotheque : selectionne plusieurs fichiers et clique sur "Lire".</p>
+        </div>
+    </section>
+
+    <!-- PROFILS -->
+    <section id="profils">
+        <h2><span class="step-num">&#9654;</span> Les profils</h2>
+        <p class="desc">Si plusieurs personnes utilisent l'application sur le meme PC.</p>
+
+        <ol class="steps">
+            <li>Clique sur l'onglet <strong>"Profil"</strong></li>
+            <li>Entre ton prenom ou pseudo</li>
+            <li>Clique sur <strong>"Creer"</strong> ou <strong>"Charger"</strong></li>
+        </ol>
+
+        <p>Chaque profil garde ses propres preferences (format, qualite). Un compteur te montre combien de fichiers tu as telecharges.</p>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ========================================= -->
+    <!--          EXTENSION NAVIGATEUR             -->
+    <!-- ========================================= -->
+
+    <section id="ext-cest-quoi">
+        <h2><span class="step-num">?</span> L'extension navigateur, c'est quoi ?</h2>
+        <p>C'est un petit programme qui s'ajoute a ton navigateur (Chrome ou Brave) et qui met un <strong>bouton rouge "DL" directement sur les pages YouTube</strong>.</p>
+        <p>Au lieu de copier-coller l'adresse de la video, tu cliques sur le bouton et ca telecharge tout seul.</p>
+        <div class="card info">
+            <p><strong>L'extension est optionnelle.</strong> L'application web fonctionne tres bien sans. L'extension c'est juste un raccourci pratique pour aller plus vite.</p>
+        </div>
+    </section>
+
+    <section id="ext-installer">
+        <h2><span class="step-num">1</span> Installer l'extension</h2>
+        <p class="desc">A faire une seule fois.</p>
+
+        <ol class="steps">
+            <li>Ouvre ton navigateur <strong>Chrome</strong> ou <strong>Brave</strong></li>
+            <li>Dans la barre d'adresse, tape <code>chrome://extensions</code> (sur Brave : <code>brave://extensions</code>) et appuie sur <strong class="key">Entree</strong></li>
+            <li>En haut a droite de la page, active le <strong>"Mode developpeur"</strong> (c'est un petit interrupteur)</li>
+            <li>Trois boutons apparaissent en haut. Clique sur <strong>"Charger l'extension non empaquetee"</strong> (ou "Load unpacked" en anglais)</li>
+            <li>Une fenetre s'ouvre pour choisir un dossier. Navigue jusqu'au dossier du projet et selectionne le sous-dossier <strong><code>extension</code></strong></li>
+            <li>Clique sur <strong>"Selectionner un dossier"</strong></li>
+        </ol>
+
+        <div class="card success">
+            <p>L'extension est installee ! Tu vois une petite icone rouge dans la barre du navigateur en haut a droite. Va sur YouTube pour tester.</p>
+        </div>
+
+        <div class="card warning">
+            <p><strong>Le serveur Apache doit etre demarre</strong> pour que l'extension fonctionne (voir <a href="#etape3">etape 3</a>). Sinon, l'extension affichera "Serveur hors ligne".</p>
+        </div>
+    </section>
+
+    <section id="ext-utiliser">
+        <h2><span class="step-num">2</span> Utiliser l'extension</h2>
+        <p class="desc">Les boutons qui apparaissent sur YouTube.</p>
+
+        <p>Quand tu vas sur une video YouTube, <strong>4 boutons apparaissent en bas a droite</strong> de la page :</p>
+
+        <table>
+            <tr><th>Bouton</th><th>Apparence</th><th>Ce qu'il fait</th></tr>
+            <tr><td><strong>DL</strong></td><td>Rond rouge</td><td>Lance le telechargement en 1 clic avec tes derniers reglages. Affiche la progression (0% → 100%) puis devient <strong>vert</strong> quand c'est fini.</td></tr>
+            <tr><td><strong>Menu</strong></td><td>3 barres grises</td><td>Ouvre un panneau pour choisir : Audio ou Video, le format (MP3, MP4...), la qualite, et la couverture (image de la video).</td></tr>
+            <tr><td><strong>File d'attente</strong></td><td>Carre bleu</td><td>Affiche la liste de tes telechargements en cours. Tu peux passer, relancer, reordonner ou supprimer des elements.</td></tr>
+            <tr><td><strong>Cloche</strong></td><td>Cloche grise</td><td>Panneau de notifications : te previent quand un telechargement est fini, si un fichier existe deja (doublon), ou s'il y a une erreur.</td></tr>
+        </table>
+
+        <h3>Le bouton a cote des "J'aime"</h3>
+        <p>Un bouton <strong>"DL" rouge</strong> apparait aussi directement a cote des boutons Like/Dislike de YouTube. Il fait la meme chose que le bouton flottant.</p>
+
+        <h3>Le bouton est vert ?</h3>
+        <p>Ca veut dire que cette video est <strong>deja dans ta bibliotheque</strong>. Tu peux quand meme la re-telecharger en ouvrant le panneau Menu.</p>
+
+        <h3>Utiliser la popup</h3>
+        <p>Tu peux aussi cliquer sur <strong>l'icone de l'extension</strong> (en haut a droite du navigateur) pour ouvrir une popup avec les memes options.</p>
+
+        <div class="card info">
+            <p><strong>Tes reglages sont sauvegardes automatiquement.</strong> Si tu choisis "MP3, Haute qualite", le bouton DL utilisera toujours ces reglages jusqu'a ce que tu les changes.</p>
+        </div>
+    </section>
+
+    <section id="ext-playlist">
+        <h2><span class="step-num">3</span> Telecharger des playlists</h2>
+        <p class="desc">Telecharger toutes les videos d'une playlist YouTube d'un coup.</p>
+
+        <p>Quand tu es sur une page de playlist YouTube (ou qu'une playlist apparait sur le cote), l'extension detecte automatiquement les videos :</p>
+
+        <ol class="steps">
+            <li>Un <strong>bandeau rouge</strong> apparait en haut de la page avec le nombre de videos detectees</li>
+            <li>Si tu veux, coche <strong>"Filtrer par duree"</strong> pour definir une duree minimum et maximum (en minutes). Pratique pour ignorer les intros ou les lives tres longs</li>
+            <li>Le compteur se met a jour : par exemple "18 / 24 videos" (18 correspondent au filtre sur 24 au total)</li>
+            <li>Clique sur <strong>"Tout telecharger"</strong></li>
+            <li>Deux barres de progression s'affichent : une <strong>rouge</strong> pour la video en cours, une <strong>verte</strong> pour l'ensemble</li>
+            <li>Les videos deja dans ta bibliotheque sont automatiquement ignorees (le panneau cloche te le signale)</li>
+        </ol>
+
+        <div class="card info">
+            <p><strong>Astuce :</strong> si la playlist est longue, fais defiler la page vers le bas pour charger toutes les videos avant de cliquer "Tout telecharger". L'extension met a jour le compteur au fur et a mesure du scroll.</p>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ========================================= -->
+    <!--             DEPANNAGE                     -->
+    <!-- ========================================= -->
+
+    <section id="problemes">
+        <h2><span class="step-num">!</span> Problemes et solutions</h2>
+        <p class="desc">Si quelque chose ne marche pas, regarde ici.</p>
+
+        <h3>"Cette page est inaccessible" dans le navigateur</h3>
+        <div class="card">
+            <p><strong>Cause :</strong> Le serveur Apache n'est pas demarre.</p>
+            <p><strong>Solution :</strong> Ouvre XAMPP Control Panel (cherche "XAMPP" dans le menu Demarrer) et clique sur "Start" a cote d'Apache. Quand c'est vert, rafraichis la page.</p>
+        </div>
+
+        <h3>Le telechargement echoue ou reste bloque</h3>
+        <div class="card">
+            <p><strong>Cause possible 1 :</strong> yt-dlp n'est pas a jour. YouTube change souvent et yt-dlp doit suivre.</p>
+            <p><strong>Solution :</strong> Dans la bibliotheque, clique sur <strong>"Mettre a jour yt-dlp"</strong>. Puis reessaie.</p>
+            <p><strong>Cause possible 2 :</strong> La video est protegee ou geobloguee.</p>
+            <p><strong>Solution :</strong> Essaie avec une autre video pour verifier. Certaines videos ne peuvent pas etre telechargees.</p>
+        </div>
+
+        <h3>L'extension affiche "Serveur hors ligne"</h3>
+        <div class="card">
+            <p><strong>Cause :</strong> Apache n'est pas demarre.</p>
+            <p><strong>Solution :</strong> Meme solution que ci-dessus : demarre Apache via XAMPP.</p>
+        </div>
+
+        <h3>Les boutons de l'extension n'apparaissent pas sur YouTube</h3>
+        <div class="card">
+            <p><strong>Solution :</strong></p>
+            <ol>
+                <li>Va dans <code>chrome://extensions</code></li>
+                <li>Trouve "YouTube Downloader"</li>
+                <li>Clique sur le petit bouton <strong>rafraichir</strong> (fleche circulaire)</li>
+                <li>Rafraichis la page YouTube (<strong class="key">F5</strong> ou <strong class="key">Ctrl</strong>+<strong class="key">R</strong>)</li>
+            </ol>
+        </div>
+
+        <h3>Erreur lors de l'installation (install.bat)</h3>
+        <div class="card">
+            <p><strong>Solution :</strong> Fais un clic droit sur <code>install.bat</code> → <strong>"Executer en tant qu'administrateur"</strong>. Certaines installations ont besoin des droits admin.</p>
+        </div>
+
+        <h3>Le son est mauvais ou le fichier est corrompu</h3>
+        <div class="card">
+            <p><strong>Cause :</strong> Probleme lors de la conversion.</p>
+            <p><strong>Solution :</strong> Re-telecharge le fichier. Si ca persiste, essaie un autre format (FLAC au lieu de MP3, par exemple).</p>
+        </div>
+
+        <h3>Plus d'espace disque</h3>
+        <div class="card">
+            <p>Les statistiques dans la bibliotheque montrent l'espace utilise. Supprime les fichiers que tu n'ecoutes plus pour liberer de la place.</p>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+        <h2><span class="step-num">?</span> Questions frequentes</h2>
+
+        <div class="card question">
+            <p><strong>Ou sont mes fichiers telecharges ?</strong></p>
+            <p>Dans le dossier <code>downloads</code> a l'interieur du dossier du projet. Tu peux aussi y acceder depuis la bibliotheque de l'application.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>Est-ce que ca marche sans internet ?</strong></p>
+            <p>L'installation oui (tout est dans le dossier <code>program</code>). Mais pour telecharger des videos, il faut une connexion internet pour acceder a YouTube.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>Est-ce que je peux mettre les fichiers sur mon telephone ?</strong></p>
+            <p>Oui ! Les fichiers sont dans le dossier <code>downloads</code>. Branche ton telephone en USB et copie les fichiers dedans, ou envoie-les par Bluetooth.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>Ca marche sur Mac ?</strong></p>
+            <p>Non, pour l'instant c'est uniquement pour Windows 10 et 11.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>C'est quoi le theme sombre/clair ?</strong></p>
+            <p>En haut a droite de l'application, il y a une icone soleil/lune. Clique dessus pour basculer entre le fond noir (sombre, par defaut) et le fond blanc (clair, style YouTube).</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>Plusieurs personnes peuvent utiliser l'application ?</strong></p>
+            <p>Oui ! Allez dans l'onglet "Profil" et creez chacun votre profil. Chaque profil a ses propres preferences.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>Comment desinstaller ?</strong></p>
+            <p>Supprime le dossier du projet. Desinstalle XAMPP et Python depuis les Parametres Windows → Applications. Supprime le dossier <code>C:\yt-tools</code>.</p>
+        </div>
+
+        <div class="card question">
+            <p><strong>J'ai ferme la fenetre noire pendant l'installation, que faire ?</strong></p>
+            <p>Pas de panique. Re-double-clique sur <code>install.bat</code>. Le script detecte ce qui est deja installe et reprend la ou il en etait.</p>
+        </div>
+    </section>
+
+</div>
+
+<script>
+const sections = document.querySelectorAll('section');
+const navLinks = document.querySelectorAll('.sidebar nav a');
+window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(a => { a.classList.remove('active'); if (a.getAttribute('href') === '#' + current) a.classList.add('active'); });
+});
+</script>
+</body>
+</html>
