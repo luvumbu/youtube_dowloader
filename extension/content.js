@@ -379,7 +379,8 @@ function createQueuePanel() {
     <div class="ytdl-queue-header">
       <span>File d'attente <span class="ytdl-queue-count" id="ytdlQueueCount">0</span></span>
       <div>
-        <button class="ytdl-queue-clear" id="ytdlQueueClear">Vider</button>
+        <button class="ytdl-queue-clear" id="ytdlQueueClearDone">Termines</button>
+        <button class="ytdl-queue-clear" id="ytdlQueueClear">Tout vider</button>
         <button class="ytdl-queue-close" id="ytdlQueueClose">&times;</button>
       </div>
     </div>
@@ -390,6 +391,12 @@ function createQueuePanel() {
   document.body.appendChild(panel);
 
   document.getElementById('ytdlQueueClose').addEventListener('click', () => panel.classList.remove('active'));
+  document.getElementById('ytdlQueueClearDone').addEventListener('click', () => {
+    extQueue = extQueue.filter(q => q.status !== 'done');
+    renderExtQueue();
+    saveExtQueue();
+    updateQueueBadge();
+  });
   document.getElementById('ytdlQueueClear').addEventListener('click', () => {
     extQueue = extQueue.filter(q => q.status === 'active');
     renderExtQueue();
@@ -430,121 +437,191 @@ function addToExtQueue(url, title) {
 }
 
 async function processExtQueue() {
+  if (extQueueProcessing) return;
   extQueueProcessing = true;
 
-  while (extQueue.some(q => q.status === 'waiting')) {
-    const item = extQueue.find(q => q.status === 'waiting');
-    if (!item) break;
+  try {
+    while (extQueue.some(q => q.status === 'waiting')) {
+      const item = extQueue.find(q => q.status === 'waiting');
+      if (!item) break;
 
-    const prefs = await getPrefs();
-    item.status = 'active';
-    item.format = prefs.format;
-    item.type = prefs.type;
-    renderExtQueue();
-    saveExtQueue();
-
-    try {
-      // Verifier doublon
-      const exists = await checkUrlExists(item.url);
-      if (exists) {
-        item.status = 'done';
-        item.message = 'Deja en bibliotheque';
-        item.percent = 100;
-        addLog('skip', item.title, 'Deja dans la bibliotheque');
-        renderExtQueue();
-        saveExtQueue();
-        updateQueueBadge();
-        continue;
-      }
-
-      // Recuperer info
-      const infoResp = await fetch(API + '/info.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(item.url)
-      });
-      const info = await infoResp.json();
-      if (info.success) item.title = info.title;
+      const prefs = await getPrefs();
+      item.status = 'active';
+      item._activeStart = Date.now();
+      item.format = prefs.format;
+      item.type = prefs.type;
       renderExtQueue();
-
-      // Lancer le telechargement
-      const dlResp = await fetch(API + '/download.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(item.url) + '&type=' + prefs.type + '&format=' + prefs.format
-          + '&quality=' + prefs.quality + '&cover=' + prefs.cover
-      });
-      const dlData = await dlResp.json();
-
-      if (!dlData.success) {
-        item.status = 'error';
-        item.message = dlData.error || 'Erreur';
-        addLog('error', item.title, 'Erreur de telechargement');
-        renderExtQueue();
-        saveExtQueue();
-        updateQueueBadge();
-        continue;
-      }
-
-      item.jobId = dlData.jobId;
       saveExtQueue();
 
-      // Poll progression
-      await new Promise((resolve) => {
-        const poll = setInterval(async () => {
-          try {
-            const resp = await fetch(API + '/progress.php?id=' + dlData.jobId);
-            const data = await resp.json();
-            if (data.status === 'done') {
+      try {
+        // Verifier doublon
+        const exists = await checkUrlExists(item.url);
+        if (exists) {
+          item.status = 'done';
+          item.message = 'Deja en bibliotheque';
+          item.percent = 100;
+          addLog('skip', item.title, 'Deja dans la bibliotheque');
+          renderExtQueue();
+          saveExtQueue();
+          updateQueueBadge();
+          continue;
+        }
+
+        // Recuperer info
+        const infoResp = await fetch(API + '/info.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'url=' + encodeURIComponent(item.url)
+        });
+        const info = await infoResp.json();
+        if (info.success) item.title = info.title;
+        renderExtQueue();
+
+        // Lancer le telechargement
+        const dlResp = await fetch(API + '/download.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'url=' + encodeURIComponent(item.url) + '&type=' + prefs.type + '&format=' + prefs.format
+            + '&quality=' + prefs.quality + '&cover=' + prefs.cover
+        });
+        const dlData = await dlResp.json();
+
+        if (!dlData.success) {
+          item.status = 'error';
+          item.message = dlData.error || 'Erreur';
+          addLog('error', item.title, 'Erreur de telechargement');
+          renderExtQueue();
+          saveExtQueue();
+          updateQueueBadge();
+          continue;
+        }
+
+        item.jobId = dlData.jobId;
+        saveExtQueue();
+
+        // Poll progression avec timeout si aucune activite pendant 5 min
+        await new Promise((resolve) => {
+          let pollErrors = 0;
+          let lastMessage = '';
+          let lastPercent = -1;
+          let lastActivityTime = Date.now();
+          const STALL_TIMEOUT = 300000; // 5 min sans aucun changement
+          const poll = setInterval(async () => {
+            // Skip demande par l'utilisateur
+            if (item._skipped) {
               clearInterval(poll);
-              item.status = 'done';
-              item.percent = 100;
-              item.message = 'Termine';
-              if (info.success) {
-                await addToLibrary(data, info, prefs.type, prefs.format, item.url);
-                addLog('success', item.title, prefs.format.toUpperCase());
-                notify(item.title);
-              }
-              // Mettre a jour le bouton DL si c'est la video en cours
-              if (item.url === window.location.href) markAsDownloaded();
-              renderExtQueue();
-              saveExtQueue();
-              updateQueueBadge();
               resolve();
-            } else if (data.status === 'error') {
+              return;
+            }
+            if (Date.now() - lastActivityTime > STALL_TIMEOUT) {
               clearInterval(poll);
               item.status = 'error';
-              item.message = data.message || 'Erreur';
-              addLog('error', item.title, data.message || 'Erreur');
-              renderExtQueue();
-              saveExtQueue();
-              updateQueueBadge();
+              item.message = 'Bloque (aucune activite depuis 5 min)';
+              renderExtQueue(); saveExtQueue(); updateQueueBadge();
               resolve();
-            } else {
-              item.percent = data.percent || 0;
-              item.message = data.message || '';
-              renderExtQueue();
+              return;
             }
-          } catch (e) {}
-        }, 1000);
-      });
+            try {
+              const resp = await fetch(API + '/progress.php?id=' + dlData.jobId, { signal: AbortSignal.timeout(5000) });
+              const data = await resp.json();
+              pollErrors = 0;
+              // Reset timer si n'importe quoi change (percent, message, status)
+              const curMsg = data.message || '';
+              const curPct = data.percent || 0;
+              if (curPct !== lastPercent || curMsg !== lastMessage || data.status === 'done' || data.status === 'error') {
+                lastPercent = curPct;
+                lastMessage = curMsg;
+                lastActivityTime = Date.now();
+                item._activeStart = Date.now();
+              }
+              if (data.status === 'done') {
+                clearInterval(poll);
+                item.status = 'done';
+                item.percent = 100;
+                item.message = 'Termine';
+                if (info.success) {
+                  await addToLibrary(data, info, prefs.type, prefs.format, item.url);
+                  addLog('success', item.title, prefs.format.toUpperCase());
+                  notify(item.title);
+                }
+                if (item.url === window.location.href) markAsDownloaded();
+                renderExtQueue();
+                saveExtQueue();
+                updateQueueBadge();
+                resolve();
+              } else if (data.status === 'error') {
+                clearInterval(poll);
+                item.status = 'error';
+                item.message = data.message || 'Erreur';
+                addLog('error', item.title, data.message || 'Erreur');
+                renderExtQueue();
+                saveExtQueue();
+                updateQueueBadge();
+                resolve();
+              } else {
+                item.percent = data.percent || 0;
+                item.message = data.message || '';
+                renderExtQueue();
+              }
+            } catch (e) {
+              pollErrors++;
+              if (pollErrors >= 10) {
+                clearInterval(poll);
+                item.status = 'error';
+                item.message = 'Connexion perdue';
+                renderExtQueue(); saveExtQueue(); updateQueueBadge();
+                resolve();
+              }
+            }
+          }, 1000);
+        });
 
-    } catch (e) {
-      item.status = 'error';
-      item.message = 'Serveur inaccessible';
-      renderExtQueue();
-      saveExtQueue();
-      updateQueueBadge();
-    }
+      } catch (e) {
+        item.status = 'error';
+        item.message = 'Serveur inaccessible';
+        renderExtQueue();
+        saveExtQueue();
+        updateQueueBadge();
+      }
 
-    // Delai anti-blocage
-    if (extQueue.some(q => q.status === 'waiting')) {
-      await new Promise(r => setTimeout(r, 3000 + Math.floor(Math.random() * 2000)));
+      // Delai anti-blocage
+      if (extQueue.some(q => q.status === 'waiting')) {
+        await new Promise(r => setTimeout(r, 3000 + Math.floor(Math.random() * 2000)));
+      }
     }
+  } finally {
+    extQueueProcessing = false;
+  }
+}
+
+// Watchdog : nettoie les actifs bloques et relance la queue (toutes les 15s)
+setInterval(() => {
+  let changed = false;
+
+  // Detecter les items "active" sans jobId depuis plus de 60s (jamais lances)
+  // ou avec jobId mais bloques — verifier via l'API
+  extQueue.forEach(q => {
+    if (q.status === 'active' && q._activeStart && Date.now() - q._activeStart > 360000) {
+      // Actif depuis plus de 6 min sans changement = bloque
+      q.status = 'error';
+      q.message = 'Bloque (relance possible)';
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    renderExtQueue();
+    saveExtQueue();
+    updateQueueBadge();
   }
 
-  extQueueProcessing = false;
-}
+  // Relancer s'il y a des waiting sans actif
+  const hasWaiting = extQueue.some(q => q.status === 'waiting');
+  const hasActive = extQueue.some(q => q.status === 'active');
+  if (hasWaiting && !hasActive && !extQueueProcessing) {
+    processExtQueue();
+  }
+}, 15000);
 
 function renderExtQueue() {
   const body = document.getElementById('ytdlQueueBody');
@@ -559,24 +636,44 @@ function renderExtQueue() {
     return;
   }
 
+  const firstWaiting = extQueue.findIndex(x => x.status === 'waiting');
+  const lastWaiting = extQueue.length - 1 - [...extQueue].reverse().findIndex(x => x.status === 'waiting');
+
   body.innerHTML = extQueue.map((q, i) => {
     const icons = { waiting: '⏳', active: '⬇', done: '✓', error: '✗' };
     const statusText = { waiting: 'En attente', active: q.message || 'En cours...', done: q.message || 'Termine', error: q.message || 'Erreur' };
-    return `<div class="ytdl-queue-item ${q.status}">
-      <span class="ytdl-qi-icon">${icons[q.status]}</span>
-      <div class="ytdl-qi-info">
-        <div class="ytdl-qi-title">${q.title}</div>
-        <div class="ytdl-qi-meta">
-          <span>${statusText[q.status]}</span>
-          ${q.format ? '<span>' + q.format.toUpperCase() + '</span>' : ''}
-          ${q.status === 'active' && q.percent > 0 ? '<span>' + q.percent + '%</span>' : ''}
-        </div>
-        ${q.status === 'active' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:' + Math.max(q.percent, 2) + '%"></div></div>' : ''}
-        ${q.status === 'done' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : ''}
-        ${q.status === 'error' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : ''}
-      </div>
-      ${q.status === 'waiting' ? '<button class="ytdl-qi-remove" onclick="document.dispatchEvent(new CustomEvent(\'ytdl-queue-remove\',{detail:' + i + '}))">&times;</button>' : ''}
-    </div>`;
+    const isWaiting = q.status === 'waiting';
+    const isError = q.status === 'error';
+
+    let buttons = '';
+    if (q.status === 'active') {
+      buttons += '<button class="ytdl-qi-btn ytdl-qi-skip" data-action="skip" data-idx="' + i + '" title="Passer">&#9654;&#9654;</button>';
+    }
+    if (isWaiting) {
+      if (i > firstWaiting) buttons += '<button class="ytdl-qi-btn ytdl-qi-up" data-action="move-up" data-idx="' + i + '" title="Monter">&#9650;</button>';
+      if (i < lastWaiting) buttons += '<button class="ytdl-qi-btn ytdl-qi-down" data-action="move-down" data-idx="' + i + '" title="Descendre">&#9660;</button>';
+      buttons += '<button class="ytdl-qi-remove" data-action="remove" data-idx="' + i + '">&times;</button>';
+    }
+    if (isError) {
+      buttons += '<button class="ytdl-qi-btn ytdl-qi-retry" data-action="retry" data-idx="' + i + '" title="Relancer">&#8635;</button>';
+      buttons += '<button class="ytdl-qi-remove" data-action="remove" data-idx="' + i + '">&times;</button>';
+    }
+
+    return '<div class="ytdl-queue-item ' + q.status + '">'
+      + '<span class="ytdl-qi-icon">' + icons[q.status] + '</span>'
+      + '<div class="ytdl-qi-info">'
+      + '<div class="ytdl-qi-title">' + q.title + '</div>'
+      + '<div class="ytdl-qi-meta">'
+      + '<span>' + statusText[q.status] + '</span>'
+      + (q.format ? '<span>' + q.format.toUpperCase() + '</span>' : '')
+      + (q.status === 'active' && q.percent > 0 ? '<span>' + q.percent + '%</span>' : '')
+      + '</div>'
+      + (q.status === 'active' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:' + Math.max(q.percent, 2) + '%"></div></div>' : '')
+      + (q.status === 'done' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : '')
+      + (q.status === 'error' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : '')
+      + '</div>'
+      + '<div class="ytdl-qi-actions">' + buttons + '</div>'
+      + '</div>';
   }).join('');
 }
 
@@ -625,16 +722,35 @@ function restoreExtQueue() {
 
 async function resumeExtQueueItem(item) {
   const prefs = await getPrefs();
+  let pollErrors = 0;
+  let lastMessage = '';
+  let lastPercent = -1;
+  let lastActivityTime = Date.now();
+  const STALL_TIMEOUT = 300000;
   const poll = setInterval(async () => {
+    if (Date.now() - lastActivityTime > STALL_TIMEOUT) {
+      clearInterval(poll);
+      item.status = 'error';
+      item.message = 'Bloque (aucune activite depuis 5 min)';
+      renderExtQueue(); saveExtQueue(); updateQueueBadge();
+      return;
+    }
     try {
-      const resp = await fetch(API + '/progress.php?id=' + item.jobId);
+      const resp = await fetch(API + '/progress.php?id=' + item.jobId, { signal: AbortSignal.timeout(5000) });
       const data = await resp.json();
+      pollErrors = 0;
+      const curMsg = data.message || '';
+      const curPct = data.percent || 0;
+      if (curPct !== lastPercent || curMsg !== lastMessage || data.status === 'done' || data.status === 'error') {
+        lastPercent = curPct;
+        lastMessage = curMsg;
+        lastActivityTime = Date.now();
+      }
       if (data.status === 'done') {
         clearInterval(poll);
         item.status = 'done';
         item.percent = 100;
         item.message = 'Termine';
-        // Essayer d'ajouter a la bibliotheque
         try {
           const infoResp = await fetch(API + '/info.php', {
             method: 'POST',
@@ -647,6 +763,7 @@ async function resumeExtQueueItem(item) {
             notify(info.title);
           }
         } catch (e) {}
+        if (item.url === window.location.href) markAsDownloaded();
         renderExtQueue();
         saveExtQueue();
         updateQueueBadge();
@@ -662,18 +779,73 @@ async function resumeExtQueueItem(item) {
         item.message = data.message || '';
         renderExtQueue();
       }
-    } catch (e) {}
+    } catch (e) {
+      pollErrors++;
+      if (pollErrors >= 10) {
+        clearInterval(poll);
+        item.status = 'error';
+        item.message = 'Connexion perdue';
+        renderExtQueue(); saveExtQueue(); updateQueueBadge();
+      }
+    }
   }, 1000);
 }
 
-// Ecouter les suppressions depuis le DOM
-document.addEventListener('ytdl-queue-remove', (e) => {
-  const idx = e.detail;
-  if (extQueue[idx] && extQueue[idx].status === 'waiting') {
-    extQueue.splice(idx, 1);
-    renderExtQueue();
-    saveExtQueue();
-    updateQueueBadge();
+// Listener delegue pour les actions queue
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const panel = btn.closest('#ytdl-queue-panel');
+  if (!panel) return;
+
+  const action = btn.dataset.action;
+  const idx = parseInt(btn.dataset.idx);
+  if (isNaN(idx)) return;
+
+  if (action === 'remove') {
+    if (extQueue[idx] && extQueue[idx].status !== 'active') {
+      extQueue.splice(idx, 1);
+      renderExtQueue();
+      saveExtQueue();
+      updateQueueBadge();
+    }
+  } else if (action === 'move-up') {
+    if (idx > 0 && extQueue[idx] && extQueue[idx].status === 'waiting') {
+      const temp = extQueue[idx];
+      extQueue[idx] = extQueue[idx - 1];
+      extQueue[idx - 1] = temp;
+      renderExtQueue();
+      saveExtQueue();
+    }
+  } else if (action === 'move-down') {
+    if (idx < extQueue.length - 1 && extQueue[idx] && extQueue[idx].status === 'waiting') {
+      const temp = extQueue[idx];
+      extQueue[idx] = extQueue[idx + 1];
+      extQueue[idx + 1] = temp;
+      renderExtQueue();
+      saveExtQueue();
+    }
+  } else if (action === 'retry') {
+    if (extQueue[idx] && extQueue[idx].status === 'error') {
+      extQueue[idx].status = 'waiting';
+      extQueue[idx].jobId = null;
+      extQueue[idx].percent = 0;
+      extQueue[idx].message = '';
+      renderExtQueue();
+      saveExtQueue();
+      updateQueueBadge();
+      if (!extQueueProcessing) processExtQueue();
+    }
+  } else if (action === 'skip') {
+    if (extQueue[idx] && extQueue[idx].status === 'active') {
+      extQueue[idx]._skipped = true;
+      extQueue[idx].status = 'error';
+      extQueue[idx].message = 'Passe';
+      addLog('skip', extQueue[idx].title, 'Passe manuellement');
+      renderExtQueue();
+      saveExtQueue();
+      updateQueueBadge();
+    }
   }
 });
 

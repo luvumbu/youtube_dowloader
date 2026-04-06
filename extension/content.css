@@ -608,6 +608,22 @@
 .ytdl-queue-item.done .ytdl-qi-progress-fill { background: #4caf50; }
 .ytdl-queue-item.error .ytdl-qi-progress-fill { background: #f44336; }
 
+.ytdl-queue-item .ytdl-qi-actions {
+    display: flex; gap: 2px; flex-shrink: 0; align-items: center;
+}
+
+.ytdl-queue-item .ytdl-qi-btn {
+    background: none; border: none; color: #888; font-size: 13px;
+    cursor: pointer; padding: 3px 6px; border-radius: 4px;
+    transition: all 0.2s; line-height: 1;
+}
+.ytdl-queue-item .ytdl-qi-up:hover,
+.ytdl-queue-item .ytdl-qi-down:hover { color: #42a5f5; background: #42a5f520; }
+.ytdl-queue-item .ytdl-qi-skip { color: #42a5f5; font-size: 12px; letter-spacing: -3px; }
+.ytdl-queue-item .ytdl-qi-skip:hover { color: #90caf9; background: #42a5f520; }
+.ytdl-queue-item .ytdl-qi-retry { color: #ff9800; font-size: 16px; font-weight: 700; }
+.ytdl-queue-item .ytdl-qi-retry:hover { color: #ffb74d; background: #ff980020; }
+
 .ytdl-queue-item .ytdl-qi-remove {
     background: none; border: none; color: #555; font-size: 16px;
     cursor: pointer; padding: 2px 6px; border-radius: 4px;

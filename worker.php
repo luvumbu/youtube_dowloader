@@ -53,6 +53,8 @@ $descriptors = [
 
 $process = proc_open($cmd, $descriptors, $pipes);
 
+$exitCode = -1;
+
 if (is_resource($process)) {
     fclose($pipes[0]); // stdin pas utilise
 
@@ -69,11 +71,14 @@ if (is_resource($process)) {
 
         $status = proc_get_status($process);
         if (!$status['running']) {
-            // Lire le reste du buffer
+            // Repasser en bloquant pour lire le reste complet
+            stream_set_blocking($pipes[1], true);
+            stream_set_blocking($pipes[2], true);
             $stdout = stream_get_contents($pipes[1]);
             $stderr = stream_get_contents($pipes[2]);
             if ($stdout) file_put_contents($logFile, $stdout, FILE_APPEND);
             if ($stderr) file_put_contents($logFile, $stderr, FILE_APPEND);
+            $exitCode = $status['exitcode'];
             break;
         }
 
@@ -83,6 +88,17 @@ if (is_resource($process)) {
     fclose($pipes[1]);
     fclose($pipes[2]);
     proc_close($process);
+}
+
+// Si yt-dlp a echoue (exit code != 0), verifier si l'erreur est dans le log
+if ($exitCode !== 0) {
+    $logContent = file_get_contents($logFile);
+    if (strpos($logContent, 'ERROR') === false) {
+        // L'erreur n'a pas ete capturee, ecrire un message generique
+        file_put_contents($logFile, "\nERROR: yt-dlp a echoue (code $exitCode)\n", FILE_APPEND);
+    }
+    file_put_contents($logFile, "\nFINISHED\n", FILE_APPEND);
+    exit(1);
 }
 
 // === Trouver le fichier final ===
