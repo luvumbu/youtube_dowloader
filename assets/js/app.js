@@ -1090,6 +1090,74 @@ function addPlaylistToQueue() {
 let downloadQueue = [];
 let queueProcessing = false;
 
+function saveQueue() {
+    const toSave = downloadQueue.filter(q => q.status !== 'done').map(q => ({
+        url: q.url, type: q.type, format: q.format, quality: q.quality,
+        saveCover: q.saveCover, folder: q.folder, status: q.status,
+        title: q.title, jobId: q.jobId, info: q.info || null
+    }));
+    localStorage.setItem('ytQueue', JSON.stringify(toSave));
+}
+
+function restoreQueue() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('ytQueue') || '[]');
+        if (!saved.length) return;
+        downloadQueue = saved;
+        renderQueue();
+        // Reprendre le polling pour les telechargements actifs (ont un jobId)
+        saved.forEach((q, idx) => {
+            if (q.status === 'active' && q.jobId) {
+                resumePolling(idx);
+            }
+        });
+        // Relancer la queue pour les "waiting"
+        if (saved.some(q => q.status === 'waiting') && !queueProcessing) {
+            processQueue();
+        }
+    } catch (e) {}
+}
+
+function resumePolling(idx) {
+    const item = downloadQueue[idx];
+    if (!item || !item.jobId) return;
+    const interval = setInterval(async () => {
+        try {
+            const resp = await fetch('api/progress.php?id=' + item.jobId);
+            const data = await resp.json();
+            if (data.status === 'done') {
+                clearInterval(interval);
+                item.status = 'done';
+                notifyDone(item.title);
+                addHistory(item.title, 'success', item.format, item.type, item.url, item.info);
+                await fetch('api/library.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=add_item&file=' + encodeURIComponent(data.file)
+                        + '&title=' + encodeURIComponent((item.info && item.info.title) || item.title)
+                        + '&type=' + item.type + '&format=' + item.format
+                        + '&folder=' + encodeURIComponent(item.folder || '')
+                        + '&thumbnail=' + encodeURIComponent((item.info && item.info.thumbnail) || '')
+                        + '&channel=' + encodeURIComponent((item.info && item.info.channel) || '')
+                        + '&duration=' + encodeURIComponent((item.info && item.info.duration) || '')
+                        + '&cover=' + encodeURIComponent(data.cover || '')
+                        + '&url=' + encodeURIComponent(item.url)
+                });
+                incrementDownloadCount();
+                loadSystemInfo();
+                renderQueue();
+                saveQueue();
+            } else if (data.status === 'error') {
+                clearInterval(interval);
+                item.status = 'error';
+                addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
+                renderQueue();
+                saveQueue();
+            }
+        } catch (err) {}
+    }, 500);
+}
+
 function addToQueue() {
     const url = document.getElementById('url').value.trim();
     if (!url) return;
@@ -1100,9 +1168,10 @@ function addToQueue() {
     const saveCover = document.getElementById('saveCover').checked ? '1' : '0';
     const folder = document.getElementById('targetFolder').value;
 
-    downloadQueue.push({ url, type, format, quality, saveCover, folder, status: 'waiting', title: url });
+    downloadQueue.push({ url, type, format, quality, saveCover, folder, status: 'waiting', title: url, jobId: null });
     document.getElementById('url').value = '';
     renderQueue();
+    saveQueue();
 
     // Recuperer le titre en arriere-plan
     const idx = downloadQueue.length - 1;
@@ -1125,6 +1194,7 @@ function removeFromQueue(idx) {
     if (downloadQueue[idx] && downloadQueue[idx].status === 'waiting') {
         downloadQueue.splice(idx, 1);
         renderQueue();
+        saveQueue();
     }
 }
 
@@ -1163,6 +1233,7 @@ async function processQueue() {
         const item = downloadQueue[idx];
         item.status = 'active';
         renderQueue();
+        saveQueue();
 
         try {
             // Recuperer info si pas deja fait
@@ -1173,9 +1244,10 @@ async function processQueue() {
                     body: 'url=' + encodeURIComponent(item.url)
                 });
                 item.info = await infoResp.json();
-                if (!item.info.success) { item.status = 'error'; renderQueue(); continue; }
+                if (!item.info.success) { item.status = 'error'; renderQueue(); saveQueue(); continue; }
                 item.title = item.info.title;
                 renderQueue();
+                saveQueue();
             }
 
             // Lancer le telechargement
@@ -1186,6 +1258,7 @@ async function processQueue() {
             item.status = 'error';
             addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
             renderQueue();
+            saveQueue();
         }
 
         // Delai anti-blocage (3-5s) entre chaque telechargement
@@ -1196,6 +1269,7 @@ async function processQueue() {
 
     queueProcessing = false;
     renderQueue();
+    saveQueue();
 }
 
 function queueDownload(item, resolve) {
@@ -1205,7 +1279,10 @@ function queueDownload(item, resolve) {
         body: 'url=' + encodeURIComponent(item.url) + '&type=' + item.type + '&format=' + item.format
             + '&quality=' + item.quality + '&cover=' + item.saveCover
     }).then(r => r.json()).then(dlData => {
-        if (!dlData.success) { item.status = 'error'; renderQueue(); resolve(); return; }
+        if (!dlData.success) { item.status = 'error'; renderQueue(); saveQueue(); resolve(); return; }
+
+        item.jobId = dlData.jobId;
+        saveQueue();
 
         const interval = setInterval(async () => {
             try {
@@ -1216,7 +1293,6 @@ function queueDownload(item, resolve) {
                     item.status = 'done';
                     notifyDone(item.title);
                     addHistory(item.title, 'success', item.format, item.type, item.url, item.info);
-                    // Ajouter a la bibliotheque
                     await fetch('api/library.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1233,17 +1309,19 @@ function queueDownload(item, resolve) {
                     incrementDownloadCount();
                     loadSystemInfo();
                     renderQueue();
+                    saveQueue();
                     resolve();
                 } else if (data.status === 'error') {
                     clearInterval(interval);
                     item.status = 'error';
                     addHistory(item.title, 'error', item.format, item.type, item.url, item.info);
                     renderQueue();
+                    saveQueue();
                     resolve();
                 }
             } catch (err) {}
         }, 500);
-    }).catch(() => { item.status = 'error'; renderQueue(); resolve(); });
+    }).catch(() => { item.status = 'error'; renderQueue(); saveQueue(); resolve(); });
 }
 
 // ========== HISTORY ==========
@@ -1431,6 +1509,7 @@ if (savedUser) {
 // Load folders for download tab on start
 loadLibrary();
 loadSystemInfo();
+restoreQueue();
 
 // Restaurer l'onglet actif
 const savedTab = localStorage.getItem('yt_tab');

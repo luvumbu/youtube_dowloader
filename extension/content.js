@@ -1,33 +1,50 @@
 const API = 'http://localhost/youtube/api';
 
+// Helper : verifie que le contexte extension est encore valide
+function chromeOk() {
+  try { return !!(chrome && chrome.runtime && chrome.runtime.id); } catch (e) { return false; }
+}
+
 // Notifications navigateur
 if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 function notify(title) {
-  chrome.storage.local.get(['notifications'], (data) => {
-    if (data.notifications === false) return;
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Telechargement termine', { body: title, icon: 'https://www.youtube.com/favicon.ico' });
-    }
-  });
+  if (!chromeOk()) return;
+  try {
+    chrome.storage.local.get(['notifications'], (data) => {
+      if (chrome.runtime.lastError) return;
+      if (data.notifications === false) return;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Telechargement termine', { body: title, icon: 'https://www.youtube.com/favicon.ico' });
+      }
+    });
+  } catch (e) {}
 }
 
 function toggleNotif() {
-  chrome.storage.local.get(['notifications'], (data) => {
-    const on = data.notifications === false; // inverse
-    chrome.storage.local.set({ notifications: on });
-    updateNotifBtn();
-  });
+  if (!chromeOk()) return;
+  try {
+    chrome.storage.local.get(['notifications'], (data) => {
+      if (chrome.runtime.lastError) return;
+      const on = data.notifications === false; // inverse
+      chrome.storage.local.set({ notifications: on });
+      updateNotifBtn();
+    });
+  } catch (e) {}
 }
 
 function updateNotifBtn() {
   const btn = document.getElementById('ytdl-btn-notif');
   if (!btn) return;
-  chrome.storage.local.get(['notifications'], (data) => {
-    const on = data.notifications !== false;
-    btn.textContent = on ? '\u{1F514}' : '\u{1F515}';
-    btn.classList.toggle('off', !on);
-    btn.title = on ? 'Notifications activees (clic pour desactiver)' : 'Notifications desactivees (clic pour activer)';
-  });
+  if (!chromeOk()) return;
+  try {
+    chrome.storage.local.get(['notifications'], (data) => {
+      if (chrome.runtime.lastError) return;
+      const on = data.notifications !== false;
+      btn.textContent = on ? '\u{1F514}' : '\u{1F515}';
+      btn.classList.toggle('off', !on);
+      btn.title = on ? 'Notifications activees (clic pour desactiver)' : 'Notifications desactivees (clic pour activer)';
+    });
+  } catch (e) {}
 }
 
 const DL_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>';
@@ -163,8 +180,22 @@ function createPanel() {
   document.getElementById('ytdlFormat').addEventListener('change', () => { savePrefs(); updatePrefsLabel(); });
   document.getElementById('ytdlQuality').addEventListener('change', () => { savePrefs(); updatePrefsLabel(); });
   document.getElementById('ytdlCover').addEventListener('change', () => { savePrefs(); updatePrefsLabel(); });
-  document.getElementById('ytdlBtnDl').addEventListener('click', () => panelDownload('download'));
-  document.getElementById('ytdlBtnQueue').addEventListener('click', () => panelDownload('queue'));
+  document.getElementById('ytdlBtnDl').addEventListener('click', () => {
+    const url = window.location.href;
+    const title = document.getElementById('ytdlTitle')?.textContent || url;
+    addToExtQueue(url, title);
+    const status = document.getElementById('ytdlStatus');
+    if (status) { status.textContent = '+ Ajoute a la file d\'attente'; status.className = 'ytdl-status ok'; }
+  });
+  document.getElementById('ytdlBtnQueue').addEventListener('click', () => {
+    const url = window.location.href;
+    const title = document.getElementById('ytdlTitle')?.textContent || url;
+    addToExtQueue(url, title);
+    const status = document.getElementById('ytdlStatus');
+    if (status) { status.textContent = '+ Ajoute a la file d\'attente'; status.className = 'ytdl-status ok'; }
+    const qp = document.getElementById('ytdl-queue-panel');
+    if (qp) qp.classList.add('active');
+  });
 
   updatePanelOptions();
   loadSavedPrefs();
@@ -191,7 +222,9 @@ function updatePanelOptions() {
 }
 
 function loadSavedPrefs() {
-  chrome.storage.local.get(['type', 'format', 'quality', 'cover', 'notifications'], (data) => {
+  if (!chromeOk()) return;
+  try { chrome.storage.local.get(['type', 'format', 'quality', 'cover', 'notifications'], (data) => {
+    if (chrome.runtime.lastError) return;
     if (data.type === 'video') {
       const el = document.getElementById('ytdlVideo');
       if (el) el.checked = true;
@@ -203,27 +236,34 @@ function loadSavedPrefs() {
     updatePrefsLabel();
     // Mettre a jour le bouton notif
     updateNotifBtn();
-  });
+  }); } catch (e) {}
 }
 
 function savePrefs() {
-  const type = document.querySelector('input[name="ytdlType"]:checked')?.value || 'audio';
-  const format = document.getElementById('ytdlFormat')?.value || 'mp3';
-  const quality = document.getElementById('ytdlQuality')?.value || '0';
-  const cover = document.getElementById('ytdlCover')?.checked || false;
-  chrome.storage.local.set({ type, format, quality, cover });
+  if (!chromeOk()) return;
+  try {
+    const type = document.querySelector('input[name="ytdlType"]:checked')?.value || 'audio';
+    const format = document.getElementById('ytdlFormat')?.value || 'mp3';
+    const quality = document.getElementById('ytdlQuality')?.value || '0';
+    const cover = document.getElementById('ytdlCover')?.checked || false;
+    chrome.storage.local.set({ type, format, quality, cover });
+  } catch (e) {}
 }
 
 function getPrefs() {
   return new Promise(resolve => {
-    chrome.storage.local.get(['type', 'format', 'quality', 'cover'], (data) => {
-      resolve({
-        type: data.type || 'audio',
-        format: data.format || 'mp3',
-        quality: data.quality || '0',
-        cover: data.cover ? '1' : '0'
+    if (!chromeOk()) { resolve({ type: 'audio', format: 'mp3', quality: '0', cover: '0' }); return; }
+    try {
+      chrome.storage.local.get(['type', 'format', 'quality', 'cover'], (data) => {
+        if (chrome.runtime.lastError) { resolve({ type: 'audio', format: 'mp3', quality: '0', cover: '0' }); return; }
+        resolve({
+          type: data.type || 'audio',
+          format: data.format || 'mp3',
+          quality: data.quality || '0',
+          cover: data.cover ? '1' : '0'
+        });
       });
-    });
+    } catch (e) { resolve({ type: 'audio', format: 'mp3', quality: '0', cover: '0' }); }
   });
 }
 
@@ -287,92 +327,9 @@ function markAsDownloaded() {
 
 // ========== QUICK DOWNLOAD (bouton DL) ==========
 async function quickDownload() {
-  const btn = document.getElementById('ytdl-btn-dl');
   const url = window.location.href;
-  const prefs = await getPrefs();
-
-  // Verifier doublon
-  const exists = await checkUrlExists(url);
-  if (exists) {
-    // Deja telecharge — demander confirmation via le panneau
-    const panel = document.getElementById('ytdl-panel');
-    const status = document.getElementById('ytdlStatus');
-    if (panel && status) {
-      panel.classList.add('active');
-      loadVideoInfo();
-      status.textContent = 'Cette video est deja dans ta bibliotheque. Utilise le panneau pour re-telecharger si besoin.';
-      status.className = 'ytdl-status ok';
-    }
-    return;
-  }
-
-  btn.classList.remove('ytdl-downloaded');
-  btn.innerHTML = '...';
-  btn.disabled = true;
-
-  try {
-    const dlResp = await fetch(API + '/download.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'url=' + encodeURIComponent(url) + '&type=' + prefs.type + '&format=' + prefs.format
-        + '&quality=' + prefs.quality + '&cover=' + prefs.cover
-    });
-    const dlData = await dlResp.json();
-
-    if (!dlData.success) {
-      btn.innerHTML = '!';
-      btn.classList.add('ytdl-error');
-      setTimeout(() => resetDlBtn(btn), 3000);
-      return;
-    }
-
-    btn.innerHTML = '0%';
-    btn.classList.add('ytdl-progress');
-
-    // Get info en parallele
-    if (!cachedInfo || !cachedInfo.success) {
-      const infoResp = await fetch(API + '/info.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(url)
-      });
-      cachedInfo = await infoResp.json();
-    }
-
-    // Poll progress
-    const poll = setInterval(async () => {
-      try {
-        const resp = await fetch(API + '/progress.php?id=' + dlData.jobId);
-        const data = await resp.json();
-        if (data.status === 'done') {
-          clearInterval(poll);
-          btn.innerHTML = CHECK_ICON;
-          btn.classList.remove('ytdl-progress');
-          btn.classList.add('ytdl-downloaded');
-          btn.disabled = false;
-          btn.title = 'Deja telecharge (clic pour re-telecharger)';
-          markAsDownloaded();
-          if (cachedInfo && cachedInfo.success) {
-            notify(cachedInfo.title);
-            addToLibrary(data, cachedInfo, prefs.type, prefs.format, url);
-          }
-        } else if (data.status === 'error') {
-          clearInterval(poll);
-          btn.innerHTML = '!';
-          btn.classList.remove('ytdl-progress');
-          btn.classList.add('ytdl-error');
-          setTimeout(() => resetDlBtn(btn), 3000);
-        } else {
-          btn.textContent = Math.max(data.percent || 0, 1) + '%';
-        }
-      } catch (e) {}
-    }, 1000);
-
-  } catch (err) {
-    btn.innerHTML = 'OFF';
-    btn.classList.add('ytdl-error');
-    setTimeout(() => resetDlBtn(btn), 3000);
-  }
+  const title = cachedInfo?.title || document.title.replace(' - YouTube', '') || url;
+  addToExtQueue(url, title);
 }
 
 function resetDlBtn(btn) {
@@ -383,102 +340,6 @@ function resetDlBtn(btn) {
 }
 
 // ========== PANEL DOWNLOAD ==========
-async function panelDownload(mode) {
-  const url = window.location.href;
-  const type = document.querySelector('input[name="ytdlType"]:checked').value;
-  const format = document.getElementById('ytdlFormat').value;
-  const quality = document.getElementById('ytdlQuality').value;
-  const cover = document.getElementById('ytdlCover').checked ? '1' : '0';
-  const status = document.getElementById('ytdlStatus');
-  const progressZone = document.getElementById('ytdlProgressZone');
-  const progressBar = document.getElementById('ytdlProgressBar');
-  const progressText = document.getElementById('ytdlProgressText');
-  const btnDl = document.getElementById('ytdlBtnDl');
-  const btnQueue = document.getElementById('ytdlBtnQueue');
-
-  savePrefs();
-  updatePrefsLabel();
-  btnDl.disabled = true;
-  btnQueue.disabled = true;
-
-  try {
-    if (!cachedInfo || !cachedInfo.success) {
-      const infoResp = await fetch(API + '/info.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(url)
-      });
-      cachedInfo = await infoResp.json();
-    }
-
-    if (!cachedInfo.success) {
-      status.textContent = 'Erreur: ' + cachedInfo.error;
-      status.className = 'ytdl-status err';
-      btnDl.disabled = false; btnQueue.disabled = false;
-      return;
-    }
-
-    const dlResp = await fetch(API + '/download.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'url=' + encodeURIComponent(url) + '&type=' + type + '&format=' + format
-        + '&quality=' + quality + '&cover=' + cover
-    });
-    const dlData = await dlResp.json();
-
-    if (!dlData.success) {
-      status.textContent = 'Erreur: ' + dlData.error;
-      status.className = 'ytdl-status err';
-      btnDl.disabled = false; btnQueue.disabled = false;
-      return;
-    }
-
-    status.className = 'ytdl-status';
-    progressZone.classList.add('active');
-    progressText.textContent = 'Demarrage...';
-    progressBar.style.width = '5%';
-
-    const poll = setInterval(async () => {
-      try {
-        const resp = await fetch(API + '/progress.php?id=' + dlData.jobId);
-        const data = await resp.json();
-        if (data.status === 'done') {
-          clearInterval(poll);
-          progressBar.style.width = '100%';
-          progressText.textContent = 'Termine !';
-          await addToLibrary(data, cachedInfo, type, format, url);
-          notify(cachedInfo.title);
-          status.textContent = '✓ ' + cachedInfo.title;
-          status.className = 'ytdl-status ok';
-
-          markAsDownloaded();
-
-          setTimeout(() => {
-            progressZone.classList.remove('active');
-            btnDl.disabled = false; btnQueue.disabled = false;
-          }, 2000);
-        } else if (data.status === 'error') {
-          clearInterval(poll);
-          progressText.textContent = 'Erreur';
-          status.textContent = data.message;
-          status.className = 'ytdl-status err';
-          progressZone.classList.remove('active');
-          btnDl.disabled = false; btnQueue.disabled = false;
-        } else {
-          const pct = Math.max(data.percent || 0, 5);
-          progressBar.style.width = pct + '%';
-          progressText.textContent = data.message || (pct + '%');
-        }
-      } catch (e) {}
-    }, 800);
-
-  } catch (err) {
-    status.textContent = 'Serveur inaccessible. Lance Apache.';
-    status.className = 'ytdl-status err';
-    btnDl.disabled = false; btnQueue.disabled = false;
-  }
-}
-
 // ========== LIBRARY ==========
 async function addToLibrary(data, info, type, format, url) {
   await fetch(API + '/library.php', {
@@ -504,6 +365,317 @@ async function addToLibrary(data, info, type, format, url) {
       + '&dislikes=' + encodeURIComponent(info.dislikes || '0')
   });
 }
+
+// ========== EXTENSION QUEUE ==========
+let extQueue = [];
+let extQueueProcessing = false;
+
+function createQueuePanel() {
+  if (document.getElementById('ytdl-queue-panel')) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'ytdl-queue-panel';
+  panel.innerHTML = `
+    <div class="ytdl-queue-header">
+      <span>File d'attente <span class="ytdl-queue-count" id="ytdlQueueCount">0</span></span>
+      <div>
+        <button class="ytdl-queue-clear" id="ytdlQueueClear">Vider</button>
+        <button class="ytdl-queue-close" id="ytdlQueueClose">&times;</button>
+      </div>
+    </div>
+    <div class="ytdl-queue-body" id="ytdlQueueBody">
+      <p class="ytdl-queue-empty">File d'attente vide.</p>
+    </div>
+  `;
+  document.body.appendChild(panel);
+
+  document.getElementById('ytdlQueueClose').addEventListener('click', () => panel.classList.remove('active'));
+  document.getElementById('ytdlQueueClear').addEventListener('click', () => {
+    extQueue = extQueue.filter(q => q.status === 'active');
+    renderExtQueue();
+    saveExtQueue();
+  });
+}
+
+function createQueueToggle() {
+  if (document.getElementById('ytdl-btn-queue-toggle')) return;
+  const bar = document.getElementById('ytdl-bar');
+  if (!bar) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'ytdl-btn-queue-toggle';
+  btn.className = 'ytdl-fab ytdl-fab-queue';
+  btn.title = "File d'attente";
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4zm14-3l4 3-4 3v-6z"/></svg><span class="ytdl-queue-badge" id="ytdlQueueBadge"></span>';
+  btn.addEventListener('click', () => {
+    const panel = document.getElementById('ytdl-queue-panel');
+    if (panel) panel.classList.toggle('active');
+  });
+  bar.appendChild(btn);
+}
+
+function addToExtQueue(url, title) {
+  // Eviter les doublons dans la queue
+  if (extQueue.some(q => q.url === url && q.status !== 'done' && q.status !== 'error')) return;
+
+  extQueue.push({
+    url, title: title || url, status: 'waiting',
+    jobId: null, percent: 0, message: '', format: '', type: ''
+  });
+  renderExtQueue();
+  saveExtQueue();
+  updateQueueBadge();
+
+  if (!extQueueProcessing) processExtQueue();
+}
+
+async function processExtQueue() {
+  extQueueProcessing = true;
+
+  while (extQueue.some(q => q.status === 'waiting')) {
+    const item = extQueue.find(q => q.status === 'waiting');
+    if (!item) break;
+
+    const prefs = await getPrefs();
+    item.status = 'active';
+    item.format = prefs.format;
+    item.type = prefs.type;
+    renderExtQueue();
+    saveExtQueue();
+
+    try {
+      // Verifier doublon
+      const exists = await checkUrlExists(item.url);
+      if (exists) {
+        item.status = 'done';
+        item.message = 'Deja en bibliotheque';
+        item.percent = 100;
+        addLog('skip', item.title, 'Deja dans la bibliotheque');
+        renderExtQueue();
+        saveExtQueue();
+        updateQueueBadge();
+        continue;
+      }
+
+      // Recuperer info
+      const infoResp = await fetch(API + '/info.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'url=' + encodeURIComponent(item.url)
+      });
+      const info = await infoResp.json();
+      if (info.success) item.title = info.title;
+      renderExtQueue();
+
+      // Lancer le telechargement
+      const dlResp = await fetch(API + '/download.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'url=' + encodeURIComponent(item.url) + '&type=' + prefs.type + '&format=' + prefs.format
+          + '&quality=' + prefs.quality + '&cover=' + prefs.cover
+      });
+      const dlData = await dlResp.json();
+
+      if (!dlData.success) {
+        item.status = 'error';
+        item.message = dlData.error || 'Erreur';
+        addLog('error', item.title, 'Erreur de telechargement');
+        renderExtQueue();
+        saveExtQueue();
+        updateQueueBadge();
+        continue;
+      }
+
+      item.jobId = dlData.jobId;
+      saveExtQueue();
+
+      // Poll progression
+      await new Promise((resolve) => {
+        const poll = setInterval(async () => {
+          try {
+            const resp = await fetch(API + '/progress.php?id=' + dlData.jobId);
+            const data = await resp.json();
+            if (data.status === 'done') {
+              clearInterval(poll);
+              item.status = 'done';
+              item.percent = 100;
+              item.message = 'Termine';
+              if (info.success) {
+                await addToLibrary(data, info, prefs.type, prefs.format, item.url);
+                addLog('success', item.title, prefs.format.toUpperCase());
+                notify(item.title);
+              }
+              // Mettre a jour le bouton DL si c'est la video en cours
+              if (item.url === window.location.href) markAsDownloaded();
+              renderExtQueue();
+              saveExtQueue();
+              updateQueueBadge();
+              resolve();
+            } else if (data.status === 'error') {
+              clearInterval(poll);
+              item.status = 'error';
+              item.message = data.message || 'Erreur';
+              addLog('error', item.title, data.message || 'Erreur');
+              renderExtQueue();
+              saveExtQueue();
+              updateQueueBadge();
+              resolve();
+            } else {
+              item.percent = data.percent || 0;
+              item.message = data.message || '';
+              renderExtQueue();
+            }
+          } catch (e) {}
+        }, 1000);
+      });
+
+    } catch (e) {
+      item.status = 'error';
+      item.message = 'Serveur inaccessible';
+      renderExtQueue();
+      saveExtQueue();
+      updateQueueBadge();
+    }
+
+    // Delai anti-blocage
+    if (extQueue.some(q => q.status === 'waiting')) {
+      await new Promise(r => setTimeout(r, 3000 + Math.floor(Math.random() * 2000)));
+    }
+  }
+
+  extQueueProcessing = false;
+}
+
+function renderExtQueue() {
+  const body = document.getElementById('ytdlQueueBody');
+  const countEl = document.getElementById('ytdlQueueCount');
+  if (!body) return;
+
+  const active = extQueue.filter(q => q.status !== 'done' || Date.now() - (q._doneTime || 0) < 30000);
+  if (countEl) countEl.textContent = extQueue.filter(q => q.status === 'waiting' || q.status === 'active').length;
+
+  if (extQueue.length === 0) {
+    body.innerHTML = '<p class="ytdl-queue-empty">File d\'attente vide.</p>';
+    return;
+  }
+
+  body.innerHTML = extQueue.map((q, i) => {
+    const icons = { waiting: '⏳', active: '⬇', done: '✓', error: '✗' };
+    const statusText = { waiting: 'En attente', active: q.message || 'En cours...', done: q.message || 'Termine', error: q.message || 'Erreur' };
+    return `<div class="ytdl-queue-item ${q.status}">
+      <span class="ytdl-qi-icon">${icons[q.status]}</span>
+      <div class="ytdl-qi-info">
+        <div class="ytdl-qi-title">${q.title}</div>
+        <div class="ytdl-qi-meta">
+          <span>${statusText[q.status]}</span>
+          ${q.format ? '<span>' + q.format.toUpperCase() + '</span>' : ''}
+          ${q.status === 'active' && q.percent > 0 ? '<span>' + q.percent + '%</span>' : ''}
+        </div>
+        ${q.status === 'active' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:' + Math.max(q.percent, 2) + '%"></div></div>' : ''}
+        ${q.status === 'done' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : ''}
+        ${q.status === 'error' ? '<div class="ytdl-qi-progress"><div class="ytdl-qi-progress-fill" style="width:100%"></div></div>' : ''}
+      </div>
+      ${q.status === 'waiting' ? '<button class="ytdl-qi-remove" onclick="document.dispatchEvent(new CustomEvent(\'ytdl-queue-remove\',{detail:' + i + '}))">&times;</button>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateQueueBadge() {
+  const badge = document.getElementById('ytdlQueueBadge');
+  if (!badge) return;
+  const count = extQueue.filter(q => q.status === 'waiting' || q.status === 'active').length;
+  badge.textContent = count > 0 ? count : '';
+  badge.classList.toggle('active', count > 0);
+}
+
+function saveExtQueue() {
+  if (!chromeOk()) return;
+  try {
+    chrome.storage.local.set({ extQueue: extQueue.map(q => ({
+      url: q.url, title: q.title, status: q.status, jobId: q.jobId,
+      percent: q.percent, message: q.message, format: q.format, type: q.type
+    }))});
+  } catch (e) {}
+}
+
+function restoreExtQueue() {
+  if (!chromeOk()) return;
+  try {
+    chrome.storage.local.get(['extQueue'], (data) => {
+      if (chrome.runtime.lastError) return;
+      if (!data.extQueue || !data.extQueue.length) return;
+      extQueue = data.extQueue;
+      renderExtQueue();
+      updateQueueBadge();
+
+      // Reprendre le polling des actifs
+      extQueue.forEach(q => {
+        if (q.status === 'active' && q.jobId) {
+          resumeExtQueueItem(q);
+        }
+      });
+
+      // Relancer pour les waiting
+      if (extQueue.some(q => q.status === 'waiting') && !extQueueProcessing) {
+        processExtQueue();
+      }
+    });
+  } catch (e) {}
+}
+
+async function resumeExtQueueItem(item) {
+  const prefs = await getPrefs();
+  const poll = setInterval(async () => {
+    try {
+      const resp = await fetch(API + '/progress.php?id=' + item.jobId);
+      const data = await resp.json();
+      if (data.status === 'done') {
+        clearInterval(poll);
+        item.status = 'done';
+        item.percent = 100;
+        item.message = 'Termine';
+        // Essayer d'ajouter a la bibliotheque
+        try {
+          const infoResp = await fetch(API + '/info.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'url=' + encodeURIComponent(item.url)
+          });
+          const info = await infoResp.json();
+          if (info.success) {
+            await addToLibrary(data, info, item.type || prefs.type, item.format || prefs.format, item.url);
+            notify(info.title);
+          }
+        } catch (e) {}
+        renderExtQueue();
+        saveExtQueue();
+        updateQueueBadge();
+      } else if (data.status === 'error') {
+        clearInterval(poll);
+        item.status = 'error';
+        item.message = data.message || 'Erreur';
+        renderExtQueue();
+        saveExtQueue();
+        updateQueueBadge();
+      } else {
+        item.percent = data.percent || 0;
+        item.message = data.message || '';
+        renderExtQueue();
+      }
+    } catch (e) {}
+  }, 1000);
+}
+
+// Ecouter les suppressions depuis le DOM
+document.addEventListener('ytdl-queue-remove', (e) => {
+  const idx = e.detail;
+  if (extQueue[idx] && extQueue[idx].status === 'waiting') {
+    extQueue.splice(idx, 1);
+    renderExtQueue();
+    saveExtQueue();
+    updateQueueBadge();
+  }
+});
 
 // ========== NOTIFICATION LOG ==========
 let logEntries = [];
@@ -854,143 +1026,41 @@ function updateFilterCount() {
 
 async function downloadPlaylist(urls) {
   const btn = document.getElementById('ytdl-pb-btn');
-  const progressDiv = document.getElementById('ytdlPbProgress');
-  const barCurrent = document.getElementById('ytdlPbBarCurrent');
-  const barTotal = document.getElementById('ytdlPbBarTotal');
-  const labelCurrent = document.getElementById('ytdlPbCurrent');
-  const labelTotal = document.getElementById('ytdlPbTotal');
-  const statusEl = document.getElementById('ytdlPbStatus');
-  const prefs = await getPrefs();
-  let done = 0;
-  let errors = 0;
-  const total = urls.length;
+  const allVideos = fullPlaylistVideos || scrapePlaylistVideos();
 
-  btn.disabled = true;
-  btn.textContent = 'En cours...';
-  btn.classList.add('progress');
-  btn.classList.remove('done');
-  progressDiv.style.display = 'block';
-  barTotal.style.width = '0%';
-
-  let skipped = 0;
-  const user = await getCurrentUser();
-
+  // Ajouter toutes les videos a la queue
+  let added = 0;
   for (const url of urls) {
-    const videoNum = done + 1;
-    labelCurrent.textContent = 'Video ' + videoNum + ' / ' + total + ' — verification...';
-    barCurrent.style.width = '0%';
-    statusEl.textContent = 'Verification doublons...';
-
-    try {
-      // Verifier si deja telecharge
-      const exists = await checkUrlExists(url);
-      if (exists) {
-        // Recuperer le titre pour le log
-        let skipTitle = 'Video ' + videoNum;
-        try {
-          const infoResp = await fetch(API + '/info.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'url=' + encodeURIComponent(url)
-          });
-          const info = await infoResp.json();
-          if (info.success) skipTitle = info.title;
-        } catch (e) {}
-
-        skipped++;
-        done++;
-        addLog('skip', skipTitle, 'Deja dans la bibliotheque' + (user ? ' de ' + user : '') + ' — ignore');
-        statusEl.textContent = 'Ignore (doublon)';
-        barCurrent.style.width = '100%';
-        barTotal.style.width = ((done / total) * 100) + '%';
-        labelTotal.textContent = 'Total : ' + done + ' / ' + total + formatPlaylistStats(errors, skipped);
-        continue;
-      }
-
-      statusEl.textContent = 'Demarrage...';
-
-      // Recuperer info
-      const infoResp = await fetch(API + '/info.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(url)
+    const video = allVideos.find(v => v.url === url);
+    const title = video ? video.title : url;
+    // Eviter les doublons deja dans la queue
+    if (!extQueue.some(q => q.url === url && q.status !== 'done' && q.status !== 'error')) {
+      extQueue.push({
+        url, title, status: 'waiting',
+        jobId: null, percent: 0, message: '', format: '', type: ''
       });
-      const info = await infoResp.json();
-      if (info.success) {
-        labelCurrent.textContent = 'Video ' + videoNum + ' / ' + total + ' — ' + info.title;
-      }
-
-      // Lancer le telechargement
-      const dlResp = await fetch(API + '/download.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'url=' + encodeURIComponent(url) + '&type=' + prefs.type + '&format=' + prefs.format
-          + '&quality=' + prefs.quality + '&cover=' + prefs.cover
-      });
-      const dlData = await dlResp.json();
-      if (!dlData.success) {
-        errors++;
-        done++;
-        addLog('error', info.success ? info.title : 'Video ' + videoNum, 'Erreur de telechargement');
-        statusEl.textContent = 'Erreur sur cette video';
-        barTotal.style.width = ((done / total) * 100) + '%';
-        labelTotal.textContent = 'Total : ' + done + ' / ' + total + formatPlaylistStats(errors, skipped);
-        continue;
-      }
-
-      // Attendre la fin avec progression
-      await new Promise((resolve) => {
-        const poll = setInterval(async () => {
-          try {
-            const resp = await fetch(API + '/progress.php?id=' + dlData.jobId);
-            const data = await resp.json();
-            if (data.status === 'done') {
-              clearInterval(poll);
-              barCurrent.style.width = '100%';
-              statusEl.textContent = 'Termine !';
-              if (info.success) {
-                await addToLibrary(data, info, prefs.type, prefs.format, url);
-                addLog('success', info.title, prefs.format.toUpperCase() + ' — ' + (data.file || ''));
-                notify(info.title);
-              }
-              resolve();
-            } else if (data.status === 'error') {
-              clearInterval(poll);
-              errors++;
-              addLog('error', info.success ? info.title : 'Video ' + videoNum, data.message || 'Erreur inconnue');
-              statusEl.textContent = 'Erreur : ' + (data.message || '');
-              resolve();
-            } else {
-              const pct = Math.max(data.percent || 0, 1);
-              barCurrent.style.width = pct + '%';
-              statusEl.textContent = data.message || (pct + '%');
-            }
-          } catch (e) { clearInterval(poll); resolve(); }
-        }, 1000);
-      });
-    } catch (e) { errors++; }
-
-    done++;
-    barTotal.style.width = ((done / total) * 100) + '%';
-    labelTotal.textContent = 'Total : ' + done + ' / ' + total + formatPlaylistStats(errors, skipped);
-
-    // Delai anti-blocage (3-5s) sauf pour le dernier
-    if (done < total) {
-      const delay = 3000 + Math.floor(Math.random() * 2000);
-      statusEl.textContent = 'Pause ' + Math.round(delay / 1000) + 's (anti-blocage)...';
-      await new Promise(r => setTimeout(r, delay));
+      added++;
     }
   }
 
-  const downloaded = total - errors - skipped;
-  btn.textContent = downloaded + ' / ' + total + ' telecharges';
-  btn.classList.remove('progress');
-  btn.classList.add('done');
-  labelCurrent.textContent = 'Playlist terminee';
-  barCurrent.style.width = '100%';
-  statusEl.textContent = downloaded + ' telecharges' + (skipped ? ', ' + skipped + ' ignores' : '') + (errors ? ', ' + errors + ' erreurs' : '');
+  if (added > 0) {
+    renderExtQueue();
+    saveExtQueue();
+    updateQueueBadge();
+    if (!extQueueProcessing) processExtQueue();
+  }
 
-  setTimeout(() => { btn.disabled = false; }, 2000);
+  // Ouvrir le panneau queue
+  const qp = document.getElementById('ytdl-queue-panel');
+  if (qp) qp.classList.add('active');
+
+  btn.textContent = added + ' videos ajoutees a la queue';
+  btn.classList.add('done');
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = 'Tout telecharger';
+    btn.classList.remove('done');
+  }, 3000);
 }
 
 function formatPlaylistStats(errors, skipped) {
@@ -1016,8 +1086,11 @@ function initOnVideoPage() {
   fullPlaylistVideos = null;
   createButtons();
   createPanel();
+  createQueuePanel();
+  createQueueToggle();
   createLogPanel();
   createLogToggle();
+  restoreExtQueue();
 
   const status = document.getElementById('ytdlStatus');
   if (status) status.className = 'ytdl-status';
@@ -1047,7 +1120,7 @@ function initOnPlaylistPage() {
 }
 
 function removeAll() {
-  ['ytdl-bar', 'ytdl-panel', 'ytdl-inline-btn', 'ytdl-playlist-banner', 'ytdl-log-panel', 'ytdl-pb-tab'].forEach(id => {
+  ['ytdl-bar', 'ytdl-panel', 'ytdl-queue-panel', 'ytdl-inline-btn', 'ytdl-playlist-banner', 'ytdl-log-panel', 'ytdl-pb-tab'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
   });
